@@ -10,9 +10,14 @@ const urlSchema = new mongoose.Schema({
     unique: true,
     index: true
   },
+  isCustom: {
+      type: Boolean,
+      default: false
+    },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    ref: "User",
+    required: true
   },
   clicks: {
     type: Number,
@@ -22,7 +27,10 @@ const urlSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-  expiresAt: Date
+   expiresAt: {
+      type: Date,
+      default: null
+    }
 }, { timestamps: true })
 const UrlCollection = mongoose.model('Url',urlSchema)
 export default UrlCollection

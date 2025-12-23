@@ -7,7 +7,10 @@ import mongoSanitize from "express-mongo-sanitize";
 import xss from 'xss-clean';
 import hpp from "hpp";
 import errrorHandler from './middleware/error_middleware.js'
-import csrf from "csurf";
+import { redirectLimiter } from './middleware/rateLimiting_middleware.js'
+import { redirect } from './controllers/redirectUrl_controller.js'
+import auth_router from './routes/auth_routes.js'
+import url_router from './routes/url_routes.js'
 const app = express()
 app.use(helmet())
 app.use(mongoSanitize())
@@ -25,7 +28,8 @@ const limiter = rateLimit({
     message: "Too many requests from this IP, please try again after 15 minutes"
 })
 app.use(limiter())
-app.use("/api/auth")
-app.use("/api/url")
+app.use("/api/auth",auth_router)
+app.use("/api/url",url_router)
+app.get("/:shortCode",redirectLimiter,redirect)
 app.use(errrorHandler)
 export default app
