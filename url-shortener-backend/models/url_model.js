@@ -30,7 +30,17 @@ const urlSchema = new mongoose.Schema({
    expiresAt: {
       type: Date,
       default: null
-    }
+    },
+    abuseScore: {
+  type: Number,
+  default: 0
+},
+
+lastAbuseAt: {
+  type: Date,
+  default: null
+}
+
 }, { timestamps: true })
 const UrlCollection = mongoose.model('Url',urlSchema)
 export default UrlCollection
