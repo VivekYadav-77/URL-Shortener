@@ -87,3 +87,62 @@ export const deleteUrl = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getUrlStats = async (req, res, next) => {
+  try {
+    const url = await UrlCollection.findOne({
+      _id: req.params.id,
+      owner: req.userId
+    }).select("clicks createdAt expiresAt isActive");
+
+    if (!url) {
+      return res.status(404).json({ message: "URL not found" });
+    }
+
+    res.json(url);
+  } catch (err) {
+    next(err);
+  }
+};
+export const updateUrl = async (req, res, next) => {
+  try {
+    const allowed = ["expiresAt", "isActive"];
+    const updates = {};
+
+    for (const key of allowed) {
+      if (req.body[key] !== undefined) {
+        updates[key] = req.body[key];
+      }
+    }
+
+    const url = await UrlCollection.findOneAndUpdate(
+      { _id: req.params.id, owner: req.userId },
+      updates,
+      { new: true }
+    );
+
+    if (!url) {
+      return res.status(404).json({ message: "URL not found" });
+    }
+
+    res.json(url);
+  } catch (err) {
+    next(err);
+  }
+};
+export const getUrlById = async (req, res, next) => {
+  try {
+    const url = await UrlCollection.findOne({
+      _id: req.params.id,
+      owner: req.userId
+    });
+
+    if (!url) {
+      return res.status(404).json({ message: "URL not found" });
+    }
+
+    res.json(url);
+  } catch (err) {
+    next(err);
+  }
+};

@@ -13,6 +13,7 @@ import url_router from './routes/url_routes.js'
 import { redisRateLimit } from './middleware/redisRateLimiting.js'
 import { abuseGuard } from './middleware/abuse_middleware.js'
 import admin_router from './routes/admin_routes.js'
+import user_routers from './routes/user_routes.js'
 const app = express()
 app.use(helmet())
 app.use(mongoSanitize())
@@ -31,7 +32,8 @@ const limiter = rateLimit({
 })
 app.use(limiter())
 app.use("/api/auth",auth_router)
-app.use("/api/url",url_router)
+app.use("/api/urls",url_router)
+app.use("/api/users",user_routers)
 app.use('/api/admin',admin_router)
 app.get("/:shortCode",abuseGuard,redisRateLimit,redirect)
 
