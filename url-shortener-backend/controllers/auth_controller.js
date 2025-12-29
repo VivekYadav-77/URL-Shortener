@@ -8,12 +8,13 @@ import {
 } from "../utils/tokens.js";
 //Register
 export const register = async (req, res) => {
+  console.log(req.body)
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
     return res.status(400).json({ message: "All fields required" });
   }
   const existingUser = await UserCollection.findOne({
-    $or: [{ email }, { username }],
+    $or: [{ email }, { name }],
   });
   if (existingUser) {
     return res.status(409).json({ message: "User already exist" });
@@ -44,14 +45,14 @@ export const login = async (req, res) => {
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none"   : "lax",
     maxAge: 15 * 60 * 1000,
   });
 
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none"   : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -89,14 +90,14 @@ export const refresh = async (req, res) => {
   res.cookie("accessToken", newAccessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none"   : "lax",
     maxAge: 15 * 60 * 1000
   });
 
   res.cookie("refreshToken", newRefreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none"   : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000
   });
 

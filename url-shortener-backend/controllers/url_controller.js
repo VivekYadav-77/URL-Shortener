@@ -55,7 +55,7 @@ export const getMyUrls = async (req, res, next) => {
       .sort({ createdAt: -1 })
       .select("-__v");
 
-    res.json(urls);
+    return res.status(200).json(urls)
   } catch (err) {
     next(err);
   }

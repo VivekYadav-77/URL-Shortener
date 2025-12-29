@@ -1,5 +1,4 @@
-import UrlCollection from "../models/url_model.js";
-import UserCollection from "../models/user_model";
+import UserCollection from "../models/user_model.js";
 const adminMiddleware = async (req, res, next) => {
   const user = await UserCollection.findById(req.userId);
 

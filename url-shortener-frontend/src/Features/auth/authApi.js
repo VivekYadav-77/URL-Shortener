@@ -4,38 +4,55 @@ export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
     baseUrl: "http://localhost:5000/api",
-    credentials: "include" // 🔐 VERY IMPORTANT
+    credentials: "include", 
   }),
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (credentials) => ({
         url: "/auth/login",
         method: "POST",
-        body: credentials
-      })
+        body: credentials,
+      }),
     }),
     register: builder.mutation({
       query: (data) => ({
         url: "/auth/register",
         method: "POST",
-        body: data
-      })
+        body: data,
+      }),
     }),
     getMe: builder.query({
-      query: () => "/users/me"
+      query: () => "/users/me",
     }),
     logout: builder.mutation({
       query: () => ({
         url: "/auth/logout",
-        method: "POST"
-      })
-    })
-  })
+        method: "POST",
+      }),
+    }),
+    updateMe: builder.mutation({
+      query: (data) => ({
+        url: "/users/me",
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+
+    changePassword: builder.mutation({
+      query: (data) => ({
+        url: "/users/me/password",
+        method: "PATCH",
+        body: data,
+      }),
+    }),
+  }),
 });
 
 export const {
   useLoginMutation,
   useRegisterMutation,
   useGetMeQuery,
-  useLogoutMutation
+  useLogoutMutation,
+  useUpdateMeMutation,
+  useChangePasswordMutation,
 } = authApi;

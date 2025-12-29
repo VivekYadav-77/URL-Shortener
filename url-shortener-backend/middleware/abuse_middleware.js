@@ -1,4 +1,4 @@
-import redis from "../config/redis.js";
+import redis from "../config/redish.js";
 
 export const abuseGuard = async (req, res, next) => {
   try {

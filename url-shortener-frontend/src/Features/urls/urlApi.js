@@ -12,19 +12,41 @@ export const urlApi = createApi({
       query: () => "/urls",
       providesTags: ["Urls"]
     }),
-
+getUrlStats: builder.query({
+  query: (id) => `/urls/${id}/stats`
+}),
     createUrl: builder.mutation({
       query: (data) => ({
         url: "/urls",
         method: "POST",
         body: data
       }),
-      invalidatesTags: ["Urls"] 
+      invalidatesTags: ["Urls"]
+    }),
+
+    updateUrl: builder.mutation({
+      query: ({ id, data }) => ({
+        url: `/urls/${id}`,
+        method: "PATCH",
+        body: data
+      }),
+      invalidatesTags: ["Urls"]
+    }),
+
+    deleteUrl: builder.mutation({
+      query: (id) => ({
+        url: `/urls/${id}`,
+        method: "DELETE"
+      }),
+      invalidatesTags: ["Urls"]
     })
   })
 });
 
 export const {
   useGetMyUrlsQuery,
-  useCreateUrlMutation
+  useCreateUrlMutation,
+  useUpdateUrlMutation,
+  useDeleteUrlMutation,
+  useGetUrlStatsQuery,
 } = urlApi;

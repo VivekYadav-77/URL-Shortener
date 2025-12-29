@@ -10,15 +10,12 @@ import {
 } from "../controllers/admin_controller.js";
 
 const admin_router = express.Router();
-
 admin_router.use(authMiddleware, adminMiddleware);
 
 admin_router.get("/urls", getAllUrls);
 
 admin_router.get("/abuse", getAbusedUrls);
-
 admin_router.patch("/disable/:id", disableUrl);
-
 admin_router.get("/stats", getPlatformStats);
 
 export default admin_router;

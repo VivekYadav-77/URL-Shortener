@@ -3,8 +3,6 @@ import cors from 'cors'
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
-import mongoSanitize from "express-mongo-sanitize";
-import xss from 'xss-clean';
 import hpp from "hpp";
 import errrorHandler from './middleware/error_middleware.js'
 import { redirect } from './controllers/redirectUrl_controller.js'
@@ -15,10 +13,18 @@ import { abuseGuard } from './middleware/abuse_middleware.js'
 import admin_router from './routes/admin_routes.js'
 import user_routers from './routes/user_routes.js'
 const app = express()
-app.use(helmet())
-app.use(mongoSanitize())
-app.use(xss());
+app.use(helmet( helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        upgradeInsecureRequests: []
+      }
+    }
+  })))
 app.use(hpp());
+console.log(process.env.CLIENT_URL)
 app.use(cors({
     origin:process.env.CLIENT_URL,
     credentials:true
@@ -30,7 +36,7 @@ const limiter = rateLimit({
     max: 100,
     message: "Too many requests from this IP, please try again after 15 minutes"
 })
-app.use(limiter())
+app.use(limiter)
 app.use("/api/auth",auth_router)
 app.use("/api/urls",url_router)
 app.use("/api/users",user_routers)
