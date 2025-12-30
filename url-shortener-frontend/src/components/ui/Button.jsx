@@ -7,6 +7,7 @@ const variants = {
 const Button = ({
   children,
   onClick,
+  className,
   type = "button",
   variant = "primary",
   disabled = false
@@ -16,12 +17,7 @@ const Button = ({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`
-        px-4 py-2 rounded
-        transition
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${variants[variant]}
-      `}
+      className={className}
     >
       {children}
     </button>

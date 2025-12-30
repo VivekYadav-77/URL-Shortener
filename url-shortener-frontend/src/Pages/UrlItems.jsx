@@ -1,48 +1,87 @@
 import { memo } from "react";
-import { useNavigate } from "react-router-dom";
+import { BarChart2, Copy, Trash2 } from "lucide-react";
 
-const UrlItem = memo(({ url, onToggle, onDelete }) => {
-  const navigate = useNavigate();
+const UrlItem = memo(({ url, onToggle, onDelete, onStats }) => {
   const shortUrl = `${window.location.origin}/${url.shortCode}`;
 
   return (
-    <div className="p-4 flex justify-between items-center gap-4">
-      {/* LEFT */}
-      <div className="flex-1 min-w-0">
-        <p className="font-medium break-all">{shortUrl}</p>
-        <p className="text-sm text-gray-500 truncate">
+    <div
+      className="
+        bg-white rounded-xl border
+        hover:shadow-md transition
+        p-5 flex flex-col gap-3
+      "
+    >
+      <div>
+        <p className="font-semibold text-[#2563EB] break-all">
+          {shortUrl}
+        </p>
+        <p className="text-sm text-slate-500 truncate">
           {url.originalUrl}
         </p>
       </div>
 
-      {/* ACTIONS */}
-      <div className="flex items-center gap-2 text-sm shrink-0">
+      <div className="flex items-center gap-4 text-sm">
+        <span
+          className={`flex items-center gap-1 ${
+            url.isActive
+              ? "text-[#10B981]"
+              : "text-slate-400"
+          }`}
+        >
+          ● {url.isActive ? "Active" : "Disabled"}
+        </span>
+
+        <span className="text-slate-500">
+          {url.clicks || 0} clicks
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2 mt-2">
         <button
           onClick={() => navigator.clipboard.writeText(shortUrl)}
-          className="px-2 py-1 border rounded hover:bg-gray-100"
+          className="
+            flex items-center gap-1
+            px-3 py-1.5 text-sm
+            border rounded-md
+            hover:bg-slate-50
+          "
         >
-          Copy
+          <Copy size={14} /> Copy
+        </button>
+
+        <button
+          onClick={() => onStats(url._id)}
+          className="
+            flex items-center gap-1
+            px-3 py-1.5 text-sm
+            border rounded-md
+            hover:bg-slate-50
+          "
+        >
+          <BarChart2 size={14} /> Stats
         </button>
 
         <button
           onClick={() => onToggle(url)}
-          className="px-2 py-1 border rounded hover:bg-gray-100"
+          className="
+            px-3 py-1.5 text-sm
+            border rounded-md
+            hover:bg-slate-50
+          "
         >
           {url.isActive ? "Disable" : "Enable"}
         </button>
 
         <button
           onClick={() => onDelete(url._id)}
-          className="px-2 py-1 border rounded text-red-600 hover:bg-red-50"
+          className="
+            ml-auto text-red-600
+            hover:bg-red-50
+            p-2 rounded-md
+          "
         >
-          Delete
-        </button>
-
-        <button
-          onClick={() => navigate(`/urls/${url._id}/stats`)}
-          className="px-2 py-1 border rounded hover:bg-gray-100"
-        >
-          Stats
+          <Trash2 size={16} />
         </button>
       </div>
     </div>

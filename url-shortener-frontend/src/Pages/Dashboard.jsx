@@ -1,48 +1,96 @@
 import Navbar from "../components/layout/Navbar";
 import { useNavigate } from "react-router-dom";
-import { useGetMyUrlsQuery,useUpdateUrlMutation,useDeleteUrlMutation } from "../Features/urls/urlApi";
+import {
+  useGetMyUrlsQuery,
+  useUpdateUrlMutation,
+  useDeleteUrlMutation,
+} from "../Features/urls/urlApi";
 import UrlList from "./UrlList";
-const Dashboard = () => {
+
+const AdminDashboard = () => {
   const navigate = useNavigate();
 
-  const { data: urls = [], isLoading, isError } = useGetMyUrlsQuery();
+  const {
+    data: urls = [],
+    isLoading,
+    isError,
+  } = useGetMyUrlsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+    refetchOnFocus: true,
+  });
+
   const [updateUrl] = useUpdateUrlMutation();
   const [deleteUrl] = useDeleteUrlMutation();
 
   const handleToggle = (url) => {
     updateUrl({
       id: url._id,
-      data: { isActive: !url.isActive }
+      data: { isActive: !url.isActive },
     });
   };
 
   const handleDelete = (id) => {
-    if (!confirm("Delete this URL?")) return;
+    if (!confirm("Permanently delete this URL?")) return;
     deleteUrl(id);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">My URLs</h2>
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* HEADER */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
+          <div>
+            <h2 className="text-3xl font-bold text-[#1E293B]">
+              Admin Dashboard
+            </h2>
+            <p className="text-sm text-slate-500 mt-1">
+              Monitor and moderate all shortened URLs
+            </p>
+          </div>
 
           <button
             onClick={() => navigate("/create")}
-            className="bg-black text-white px-4 py-2 rounded"
+            className="
+              inline-flex items-center justify-center
+              bg-[#2563EB] text-white
+              px-5 py-2.5 rounded-lg
+              hover:bg-blue-700 transition
+              shadow-sm
+            "
           >
-            Create New
+            + Create URL
           </button>
         </div>
 
-        {isLoading && <p>Loading URLs...</p>}
-        {isError && <p className="text-red-600">Failed to load URLs</p>}
-        {!isLoading && urls.length === 0 && (
-          <p className="text-gray-500">No URLs created yet</p>
+        {/* LOADING */}
+        {isLoading && (
+          <div className="bg-white border rounded-xl p-6">
+            Loading URLs…
+          </div>
         )}
 
+        {/* ERROR */}
+        {isError && !isLoading && (
+          <div className="bg-white border rounded-xl p-6 text-red-600">
+            Failed to load URLs. Please try again.
+          </div>
+        )}
+
+        {/* EMPTY */}
+        {!isLoading && urls.length === 0 && (
+          <div className="bg-white rounded-xl p-12 text-center border">
+            <p className="text-lg font-medium text-[#1E293B]">
+              No URLs in the system
+            </p>
+            <p className="text-sm text-slate-500 mt-2">
+              URLs created by users will appear here
+            </p>
+          </div>
+        )}
+
+        {/* LIST */}
         {!isLoading && urls.length > 0 && (
           <UrlList
             urls={urls}
@@ -55,4 +103,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default AdminDashboard;

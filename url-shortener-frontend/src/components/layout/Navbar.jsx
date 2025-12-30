@@ -1,99 +1,102 @@
-import { useNavigate } from "react-router-dom";
-import { useLogoutMutation } from "../../Features/auth/authapi";
-import { useAppDispatch, useAppSelector } from "../../App/hook";
-import { clearUser } from "../../Features/auth/authSlice";
-
+import { NavLink, useNavigate } from "react-router-dom";
+import { useGetMeQuery, useLogoutMutation } from "../../Features/auth/authapi";
+import LogoIcon from "../ui/Logo";
 const Navbar = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { user } = useAppSelector((state) => state.auth);
-
-  const [logout, { isLoading }] = useLogoutMutation();
+  const { data: user } = useGetMeQuery();
+  const [logout] = useLogoutMutation();
 
   const handleLogout = async () => {
     try {
       await logout().unwrap();
-    } catch {
-    } finally {
-      dispatch(clearUser());
       navigate("/login");
+    } catch {
+      console.error()
+      
     }
   };
 
-  return (
-    <nav className="w-full bg-black text-white px-6 py-4 flex justify-between items-center">
-      <div>
-        <svg
-            viewBox="-2.4 -2.4 28.80 28.80"
-            id="link-alt"
-            xmlns="http://www.w3.org/2000/svg"
-            className="w-12 h-12 mx-auto mb-4" 
-          >
-            <g id="SVGRepo_bgCarrier" strokeWidth="0">
-              <path
-                transform="translate(-2.4, -2.4), scale(1.7999999999999998)"
-                fill="#7ed0ec"
-                d="M9.166.33a2.25 2.25 0 00-2.332 0l-5.25 3.182A2.25 2.25 0 00.5 5.436v5.128a2.25 2.25 0 001.084 1.924l5.25 3.182a2.25 2.25 0 002.332 0l5.25-3.182a2.25 2.25 0 001.084-1.924V5.436a2.25 2.25 0 00-1.084-1.924L9.166.33z"
-                strokeWidth="0"
-              ></path>
-            </g>
-            <g id="SVGRepo_iconCarrier">
-              <path
-                id="primary"
-                d="M4.5,19.5h0a3.54,3.54,0,0,1,0-5L7,12a3.54,3.54,0,0,1,5,0h0a3.54,3.54,0,0,1,0,5L9.5,19.5A3.54,3.54,0,0,1,4.5,19.5Zm13-8L20,9a3.54,3.54,0,0,0,0-5h0a3.54,3.54,0,0,0-5,0L12.5,6.5a3.54,3.54,0,0,0,0,5h0A3.54,3.54,0,0,0,17.5,11.5Z"
-                style={{
-                  fill: "none",
-                  stroke: "#1e293b",
-                  strokeLinecap: "round",
-                  strokeLinejoin: "round",
-                  strokeWidth: 2,
-                }}
-              ></path>
-              <line
-                id="secondary"
-                x1="10"
-                y1="14"
-                x2="14"
-                y2="10"
-                style={{
-                  fill: "none",
-                  stroke: "#2563eb",
-                  strokeLinecap: "round",
-                  strokeLinejoin: "round",
-                  strokeWidth: 2,
-                }}
-              ></line>
-            </g>
-          </svg>
-      <h1
-        className="text-lg font-bold cursor-pointer"
-        onClick={() => navigate("/")}
-      >
-        URL Shortener
-      </h1>
-      </div>
-      <div className="flex items-center gap-4">
-        <span className="text-sm opacity-80">{user?.email}</span>
-        <button
-          onClick={() => navigate("/")}
-          className="text-sm underline"
-        >
-          Home
-        </button>
-        <button
-          onClick={() => navigate("/profile")}
-          className="text-sm underline"
-        >
-          Profile
-        </button>
+  const navBase = "relative px-1 py-2 text-sm font-medium transition-colors";
 
-        <button
-          onClick={handleLogout}
-          disabled={isLoading}
-          className="bg-white text-black px-3 py-1 rounded hover:bg-gray-200 disabled:opacity-50"
+  const navActive =
+    "text-[#2563EB] after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-full after:bg-[#2563EB] after:rounded-full after:content-['']";
+
+  const navInactive = "text-slate-600 hover:text-[#1E293B]";
+
+  return (
+    <nav className="sticky top-0 z-50 bg-white border-b">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 cursor-pointer"
         >
-          Logout
-        </button>
+          {/* ICON */}
+          <div
+            className="
+      h-9 w-9
+      flex items-center justify-center
+      text-[#2563EB]
+    "
+          >
+            <LogoIcon />
+          </div>
+
+          {/* TEXT */}
+          <span className="text-lg font-bold text-[#1E293B]">Shorty</span>
+        </div>
+
+        {/* NAV LINKS */}
+        <div className="flex items-center gap-8">
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) =>
+              `${navBase} ${isActive ? navActive : navInactive}`
+            }
+          >
+            Dashboard
+          </NavLink>
+
+          <NavLink
+            to="/profile"
+            className={({ isActive }) =>
+              `${navBase} ${isActive ? navActive : navInactive}`
+            }
+          >
+            Profile
+          </NavLink>
+        </div>
+
+        {/* USER / ACTIONS */}
+        <div className="flex items-center gap-4">
+          {/* AVATAR */}
+          <div
+            onClick={() => navigate("/profile")}
+            className="
+              h-9 w-9 rounded-full
+              bg-[#2563EB] text-white
+              flex items-center justify-center
+              font-semibold cursor-pointer
+              hover:opacity-90 transition
+            "
+            title={user?.username}
+          >
+            {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+          </div>
+
+          {/* LOGOUT */}
+          <button
+            onClick={handleLogout}
+            className="
+               bg-[#eb2525] text-white
+                px-3 py-2 rounded-lg
+                hover:bg-red-400 transition
+                disabled:opacity-50
+            "
+          >
+            Logout
+          </button>
+        </div>
       </div>
     </nav>
   );

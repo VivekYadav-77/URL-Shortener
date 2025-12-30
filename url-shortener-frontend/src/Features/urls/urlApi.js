@@ -9,7 +9,7 @@ export const urlApi = createApi({
   tagTypes: ["Urls"],
   endpoints: (builder) => ({
     getMyUrls: builder.query({
-      query: () => "/urls",
+      query: () => "/urls/my",
       providesTags: ["Urls"]
     }),
 getUrlStats: builder.query({

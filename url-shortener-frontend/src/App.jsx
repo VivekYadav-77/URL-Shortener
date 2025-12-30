@@ -12,7 +12,6 @@ import UrlStats from "./Pages/UrlStats";
 import AdminRoute from "./components/layout/AdminRoute";
 import AdminDashboard from "./Pages/AdminDashboard";
 import Profile from "./Pages/Profile";
-import ChangePassword from "./Pages/ChangePassword";
 function App() {
   const dispatch = useAppDispatch();
 
@@ -43,7 +42,6 @@ function App() {
           <Route path="/create" element={<CreateUrl />} />
           <Route path="/urls/:id/stats" element={<UrlStats />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/profile/password" element={<ChangePassword />} />
         </Route>
       </Routes>
     </BrowserRouter>

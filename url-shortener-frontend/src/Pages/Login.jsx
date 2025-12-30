@@ -30,10 +30,11 @@ const Login = () => {
     login({ email, password });
   };
 
+  useEffect(() => {
   if (isAuthenticated) {
     navigate("/");
-    return null;
   }
+}, [isAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4 font-sans">
