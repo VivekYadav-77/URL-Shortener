@@ -28,7 +28,8 @@ const Profile = () => {
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     try {
-      await updateMe({ username }).unwrap();
+      const r = await updateMe({ username }).unwrap();
+      console.log(r)
       alert("Profile updated");
     } catch (err) {
       alert(err?.data?.message || "Update failed");

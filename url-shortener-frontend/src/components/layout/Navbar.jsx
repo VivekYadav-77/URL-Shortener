@@ -8,10 +8,12 @@ const Navbar = () => {
 
   const handleLogout = async () => {
     try {
-      await logout().unwrap();
+      const d = await logout().unwrap();
+      console.log(d)
       navigate("/login");
+      window.location.reload()
     } catch {
-      console.error()
+      console.error("Logout failed")
       
     }
   };

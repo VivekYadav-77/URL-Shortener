@@ -12,22 +12,21 @@ export const getMe = async (req, res, next) => {
 
 export const updateMe = async (req, res, next) => {
   try {
-    const allowedFields = ["username", "avatar"];
-    const updates = {};
+   const { username } = req.body;
 
-    for (const field of allowedFields) {
-      if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
-      }
+    if (!username) {
+      return res.status(400).json({
+        message: "Username is required",
+      });
     }
 
-    const user = await UserCollection.findByIdAndUpdate(
+   const user = await UserCollection.findByIdAndUpdate(
       req.userId,
-      updates,
+      { username },
       { new: true, runValidators: true }
     ).select("-password");
 
-    res.json(user);
+    res.status(200).json(user);
   } catch (err) {
     next(err);
   }

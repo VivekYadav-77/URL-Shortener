@@ -46,7 +46,7 @@ export const login = async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none"   : "lax",
-    maxAge: 15 * 60 * 1000,
+    maxAge: 60 * 60 * 1000,
   });
 
   res.cookie("refreshToken", refreshToken, {
@@ -91,7 +91,7 @@ export const refresh = async (req, res) => {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: process.env.NODE_ENV === "production" ? "none"   : "lax",
-    maxAge: 15 * 60 * 1000
+    maxAge: 60 * 60 * 1000
   });
 
   res.cookie("refreshToken", newRefreshToken, {
@@ -109,7 +109,7 @@ export const logout = async(req,res)=>{
     if(token){
         const payload = jwt.decode(token)
         if (payload?.jti) {
-      await RefreshToken.updateOne(
+      await RefreshTokenCollection.updateOne(
         { tokenId: payload.jti },
         { revoked: true }
       );
@@ -118,5 +118,5 @@ export const logout = async(req,res)=>{
      res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
 
-  res.json({ message: "Logged out successfully" });
+  res.status(200).json({ message: "Logged out successfully" });
 }
