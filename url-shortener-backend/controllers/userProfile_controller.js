@@ -12,9 +12,10 @@ export const getMe = async (req, res, next) => {
 
 export const updateMe = async (req, res, next) => {
   try {
-   const { username } = req.body;
+   const { name } = req.body;
+   console.log(req.body)
 
-    if (!username) {
+    if (!name) {
       return res.status(400).json({
         message: "Username is required",
       });
@@ -22,7 +23,7 @@ export const updateMe = async (req, res, next) => {
 
    const user = await UserCollection.findByIdAndUpdate(
       req.userId,
-      { username },
+      { name },
       { new: true, runValidators: true }
     ).select("-password");
 

@@ -6,26 +6,28 @@ import { setUser, clearUser } from "./Features/auth/authSlice";
 import CreateUrl from "./Pages/CreateUrl";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
-import Dashboard from "./Pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UrlStats from "./Pages/UrlStats";
 import AdminRoute from "./components/layout/AdminRoute";
 import AdminDashboard from "./Pages/AdminDashboard";
 import Profile from "./Pages/Profile";
+import UserDashboard from "./Pages/Dashboard";
 function App() {
   const dispatch = useAppDispatch();
 
-  const { data, isError,isLoading } = useGetMeQuery();
+  const { data,isError} = useGetMeQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  });
 
   useEffect(() => {
-     if (data) {
-    dispatch(setUser(data));
-  }
+    if (data) {
+      dispatch(setUser(data));
+    }
 
-    if (isError?.status === 401 || isError?.status === 403) {
-    dispatch(clearUser());
-  }
-  }, [data,  isLoading,isError, dispatch]);
+    if (isError?.status === 401) {
+      dispatch(clearUser());
+    }
+  }, [data,isError, dispatch]);
 
   return (
     <BrowserRouter>
@@ -38,7 +40,7 @@ function App() {
         </Route>
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<UserDashboard />} />
           <Route path="/create" element={<CreateUrl />} />
           <Route path="/urls/:id/stats" element={<UrlStats />} />
           <Route path="/profile" element={<Profile />} />

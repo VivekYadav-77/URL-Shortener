@@ -2,33 +2,36 @@ import { useEffect, useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
+import { setUser } from "../Features/auth/authSlice";
 import {
   useGetMeQuery,
   useUpdateMeMutation,
   useChangePasswordMutation,
 } from "../Features/auth/authapi";
+import { useAppSelector } from "../App/hook";
 
 const Profile = () => {
-  const { data: user, isLoading: userLoading } = useGetMeQuery();
   const [updateMe, { isLoading: updatingProfile }] = useUpdateMeMutation();
   const [changePassword, { isLoading: changingPassword }] =
     useChangePasswordMutation();
-
-  const [username, setUsername] = useState("");
+  const user = useAppSelector((state) => state.auth.user)
+ console.log("user",user)
+  const [name, setName] = useState("");
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
-    if (user?.username) {
-      setUsername(user.username);
+    if (user?.name) {
+      setName(user.name);
     }
   }, [user]);
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     try {
-      const r = await updateMe({ username }).unwrap();
+      const r = await updateMe({name }).unwrap();
+      dispatch(setUser(user))
       console.log(r)
       alert("Profile updated");
     } catch (err) {
@@ -127,8 +130,8 @@ const Profile = () => {
 
             <Input
               label="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
             />
           </div>
 

@@ -11,7 +11,6 @@ export const baseQueryWithAuth = async (args, api, extraOptions) => {
   if (result.error && result.error.status === 401) {
     api.dispatch(clearUser());
 
-    window.location.href = "/login";
   }
 
   return result;

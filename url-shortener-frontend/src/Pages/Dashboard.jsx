@@ -7,17 +7,14 @@ import {
 } from "../Features/urls/urlApi";
 import UrlList from "./UrlList";
 
-const AdminDashboard = () => {
+const UserDashboard = () => {
   const navigate = useNavigate();
 
   const {
     data: urls = [],
     isLoading,
     isError,
-  } = useGetMyUrlsQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-    refetchOnFocus: true,
-  });
+  } = useGetMyUrlsQuery(); // ✅ USER-SCOPED DATA
 
   const [updateUrl] = useUpdateUrlMutation();
   const [deleteUrl] = useDeleteUrlMutation();
@@ -30,7 +27,7 @@ const AdminDashboard = () => {
   };
 
   const handleDelete = (id) => {
-    if (!confirm("Permanently delete this URL?")) return;
+    if (!confirm("Delete this URL?")) return;
     deleteUrl(id);
   };
 
@@ -43,10 +40,10 @@ const AdminDashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
           <div>
             <h2 className="text-3xl font-bold text-[#1E293B]">
-              Admin Dashboard
+              My URLs
             </h2>
             <p className="text-sm text-slate-500 mt-1">
-              Monitor and moderate all shortened URLs
+              Create, manage and track your shortened links
             </p>
           </div>
 
@@ -67,14 +64,14 @@ const AdminDashboard = () => {
         {/* LOADING */}
         {isLoading && (
           <div className="bg-white border rounded-xl p-6">
-            Loading URLs…
+            Loading your URLs…
           </div>
         )}
 
         {/* ERROR */}
         {isError && !isLoading && (
           <div className="bg-white border rounded-xl p-6 text-red-600">
-            Failed to load URLs. Please try again.
+            Failed to load your URLs. Please try again.
           </div>
         )}
 
@@ -82,11 +79,22 @@ const AdminDashboard = () => {
         {!isLoading && urls.length === 0 && (
           <div className="bg-white rounded-xl p-12 text-center border">
             <p className="text-lg font-medium text-[#1E293B]">
-              No URLs in the system
+              You haven’t created any URLs yet
             </p>
             <p className="text-sm text-slate-500 mt-2">
-              URLs created by users will appear here
+              Shorten your first link and start tracking clicks
             </p>
+
+            <button
+              onClick={() => navigate("/create")}
+              className="
+                mt-6 bg-[#2563EB] text-white
+                px-6 py-2.5 rounded-lg
+                hover:bg-blue-700 transition
+              "
+            >
+              Create your first URL
+            </button>
           </div>
         )}
 
@@ -103,4 +111,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default UserDashboard;

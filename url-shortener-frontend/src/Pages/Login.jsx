@@ -12,29 +12,23 @@ const Login = () => {
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
-
-  const [login, { isLoading, isSuccess, isError, error, data }] =
+  const [login, { isLoading, isError, error, data }] =
     useLoginMutation();
 
   useEffect(() => {
-    if (isSuccess && data) {
-      dispatch(setUser(data.user));
-      navigate("/");
-    }
-  }, [isSuccess, data, dispatch, navigate]);
+    console.log("data",data)
+    if (data?.user) {
+      console.log(data)
+    dispatch(setUser(data.user));
+    navigate("/", { replace: true });
+  }
+  }, [data, dispatch, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!email || !password) return;
     login({ email, password });
   };
-
-  useEffect(() => {
-  if (isAuthenticated) {
-    navigate("/");
-  }
-}, [isAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4 font-sans">

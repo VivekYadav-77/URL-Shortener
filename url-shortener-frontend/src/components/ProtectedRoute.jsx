@@ -1,18 +1,24 @@
-import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { clearUser } from "./auth/authSlice";
-const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:5000/api",
-  credentials: "include",
-});
+import { Navigate, Outlet } from "react-router-dom";
+import { useAppSelector } from "../App/hook";
 
-export const baseQueryWithAuth = async (args, api, extraOptions) => {
-  const result = await baseQuery(args, api, extraOptions);
+const ProtectedRoute = () => {
+  const { isAuthenticated, authChecked } = useAppSelector(
+    (state) => state.auth
+  );
 
-  if (result.error && result.error.status === 401) {
-    api.dispatch(clearUser());
-
-    window.location.href = "/login";
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
-  return result;
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <Outlet />;
 };
+
+export default ProtectedRoute;
