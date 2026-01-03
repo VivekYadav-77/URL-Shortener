@@ -41,22 +41,22 @@ const UrlItem = memo(({ url, onToggle, onDelete, onStats }) => {
         <button
           onClick={() => navigator.clipboard.writeText(shortUrl)}
           className="
-            flex items-center gap-1
+            bg-blue-500 flex items-center gap-1
             px-3 py-1.5 text-sm
             border rounded-md
-            hover:bg-slate-50
+            hover:bg-blue-300
           "
         >
           <Copy size={14} /> Copy
         </button>
 
         <button
-          onClick={() => onStats(url._id)}
+          onClick={() => onStats?.(url._id)}
           className="
-            flex items-center gap-1
+           bg-yellow-500 flex items-center gap-1
             px-3 py-1.5 text-sm
             border rounded-md
-            hover:bg-slate-50
+            hover:bg-yellow-300
           "
         >
           <BarChart2 size={14} /> Stats
@@ -65,9 +65,9 @@ const UrlItem = memo(({ url, onToggle, onDelete, onStats }) => {
         <button
           onClick={() => onToggle(url)}
           className="
-            px-3 py-1.5 text-sm
+           bg-red-500 px-3 py-1.5 text-sm
             border rounded-md
-            hover:bg-slate-50
+            hover:bg-red-400
           "
         >
           {url.isActive ? "Disable" : "Enable"}

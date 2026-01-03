@@ -1,17 +1,19 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { useGetMeQuery, useLogoutMutation } from "../../Features/auth/authapi";
+import {  useLogoutMutation } from "../../Features/auth/authapi";
+import { useAppSelector ,useAppDispatch} from "../../App/hook";
 import LogoIcon from "../ui/Logo";
+import { clearUser } from "../../Features/auth/authSlice";
 const Navbar = () => {
   const navigate = useNavigate();
-  const { data: user } = useGetMeQuery();
   const [logout] = useLogoutMutation();
-
+const user = useAppSelector((state) => state.auth.user);
+const dispatch = useAppDispatch()
   const handleLogout = async () => {
     try {
       const d = await logout().unwrap();
       console.log(d)
+      dispatch(clearUser)
       navigate("/login");
-      window.location.reload()
     } catch {
       console.error("Logout failed")
       
@@ -81,7 +83,7 @@ const Navbar = () => {
               font-semibold cursor-pointer
               hover:opacity-90 transition
             "
-            title={user?.username}
+            title={user?.name}
           >
             {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
           </div>

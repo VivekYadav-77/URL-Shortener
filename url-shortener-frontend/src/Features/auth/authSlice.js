@@ -18,7 +18,7 @@ const authSlice = createSlice({
     clearUser: (state) => {
       state.user = null;
       state.isAuthenticated = false;
-      state.authChecked = false;
+      state.authChecked = true;
     }
   }
 });

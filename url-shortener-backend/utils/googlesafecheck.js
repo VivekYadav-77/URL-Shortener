@@ -1,7 +1,8 @@
 import axios from "axios";
 
 export const isUrlSafe = async (url) => {
-  const endpoint = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${process.env.GOOGLE_SAFE_API_KEY}`;
+  try {
+     const endpoint = `https://safebrowsing.googleapis.com/v4/threatMatches:find?key=${process.env.GOOGLE_SAFE_API_KEY}`;
 
   const body = {
     client: {
@@ -19,4 +20,9 @@ export const isUrlSafe = async (url) => {
   const response = await axios.post(endpoint, body);
 
   return !response.data.matches;
+  } catch (error) {
+     console.error("Safe Browsing error:", error.message);
+    return false;
+  }
+ 
 };

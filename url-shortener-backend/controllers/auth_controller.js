@@ -64,6 +64,7 @@ export const login = async (req, res) => {
       role: user.role,
     },
   });
+  console.log("login",user)
 };
 //Refresh
 export const refresh = async (req, res) => {

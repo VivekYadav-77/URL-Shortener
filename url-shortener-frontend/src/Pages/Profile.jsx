@@ -1,22 +1,30 @@
 import { useEffect, useState } from "react";
+import { useRef } from "react";
 import Navbar from "../components/layout/Navbar";
 import Input from "../components/ui/Input";
 import Button from "../components/ui/Button";
 import { setUser } from "../Features/auth/authSlice";
 import {
-  useGetMeQuery,
   useUpdateMeMutation,
   useChangePasswordMutation,
 } from "../Features/auth/authapi";
-import { useAppSelector } from "../App/hook";
+import { useAppSelector, useAppDispatch } from "../App/hook";
 
 const Profile = () => {
   const [updateMe, { isLoading: updatingProfile }] = useUpdateMeMutation();
   const [changePassword, { isLoading: changingPassword }] =
     useChangePasswordMutation();
-  const user = useAppSelector((state) => state.auth.user)
- console.log("user",user)
+  const user = useAppSelector((state) => state.auth.user);
+  const dispatch = useAppDispatch();
+  const feedbackRef = useRef(null);
   const [name, setName] = useState("");
+  const [feedback, setFeedback] = useState({ type: null, message: "" });
+  const showFeedback = (type, message, timeout = 3000) => {
+    setFeedback({ type, message });
+    setTimeout(() => {
+      setFeedback({ type: null, message: "" });
+    }, timeout);
+  };
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -29,20 +37,41 @@ const Profile = () => {
 
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
+    if (name.trim() === user?.name) {
+      showFeedback("warning", "Your current name is same");
+      return;
+    }
     try {
-      const r = await updateMe({name }).unwrap();
-      dispatch(setUser(user))
-      console.log(r)
-      alert("Profile updated");
+      const r = await updateMe({ name }).unwrap();
+      dispatch(setUser(r));
+      showFeedback("success", "Profile updated successfully");
+      console.log("api call");
+      console.log(r);
     } catch (err) {
-      alert(err?.data?.message || "Update failed");
+      showFeedback("error", err?.data?.message || "Profile update failed");
     }
   };
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    if (!currentPassword || !newPassword) return;
-
+    if (!currentPassword || !newPassword) {
+      showFeedback("warning", "Please fill all password fields");
+      return;
+    }
+    if (currentPassword === newPassword) {
+      showFeedback(
+        "warning",
+        "New password must be different from current password"
+      );
+      return;
+    }
+    if (newPassword.length<8) {
+      showFeedback(
+        "warning",
+        "Password must conatin  minimum 8 character"
+      );
+      return;
+    }
     try {
       await changePassword({
         currentPassword,
@@ -51,11 +80,19 @@ const Profile = () => {
 
       setCurrentPassword("");
       setNewPassword("");
-      alert("Password updated successfully");
+      showFeedback("success", "Password updated successfully");
     } catch (err) {
-      alert(err?.data?.message || "Password change failed");
+      showFeedback("error", err?.data?.message || "Password change failed");
     }
   };
+  useEffect(() => {
+    if (feedback.message && feedbackRef.current) {
+      feedbackRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
+  }, [feedback.message]);
 
   return (
     <div className="min-h-screen bg-[#F8FAFC]">
@@ -65,7 +102,7 @@ const Profile = () => {
         {/* HEADER */}
         <div className="mb-10 flex items-center gap-5">
           {/* Icon Container - Increased size and adjusted padding */}
-          <div className="flex-shrink-0 w-16 h-16 bg-blue-50 flex items-center justify-center rounded-2xl border border-blue-100 shadow-sm">
+          <div className="shrink-0 w-16 h-16 bg-blue-50 flex items-center justify-center rounded-2xl border border-blue-100 shadow-sm">
             <svg
               viewBox="-2.4 -2.4 28.80 28.80"
               fill="none"
@@ -116,6 +153,29 @@ const Profile = () => {
             </p>
           </div>
         </div>
+        {feedback.message && (
+          <div
+            ref={feedbackRef}
+            className={`
+      mb-6 flex items-center gap-2
+      rounded-lg px-4 py-3 text-sm font-semibold
+      transition-all duration-300
+      ${
+        feedback.type === "success"
+          ? "bg-green-50 text-green-700 border border-green-200"
+          : feedback.type === "warning"
+          ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+          : "bg-red-50 text-red-700 border border-red-200"
+      }
+    `}
+          >
+            {feedback.type === "success" && <span>✔</span>}
+            {feedback.type === "warning" && <span>⚠</span>}
+            {feedback.type === "error" && <span>✖</span>}
+            <span>{feedback.message}</span>
+          </div>
+        )}
+
         {/* ACCOUNT INFO */}
         <form
           onSubmit={handleProfileSubmit}

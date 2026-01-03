@@ -42,11 +42,10 @@ export const changePassword = async (req, res, next) => {
     if (!valid) {
       return res.status(400).json({ message: "Invalid current password" });
     }
-
-    user.password = await argon2.hash(newPassword);
+     user.password = newPassword
     await user.save();
 
-    res.json({ message: "Password updated successfully" });
+    res.status(200).json({ message: "Password updated successfully" });
   } catch (err) {
     next(err);
   }

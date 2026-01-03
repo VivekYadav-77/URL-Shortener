@@ -12,7 +12,10 @@ const UrlStats=()=>{
       <main className="max-w-3xl mx-auto p-6">
         <button
           onClick={() => navigate(-1)}
-          className="text-sm text-blue-600 mb-4"
+          className=" bg-blue-500 flex items-center gap-1
+            px-3 py-1.5 text-sm
+            border rounded-md
+            hover:bg-blue-300"
         >
           ← Back
         </button>

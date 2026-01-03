@@ -39,10 +39,13 @@ const Register = () => {
     register({ email, password, name });
   };
 
-  if (isAuthenticated) {
-    navigate("/");
-    return null;
-  }
+   useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
+
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100">
@@ -131,7 +134,7 @@ const Register = () => {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
-          <p className="text-xs text-slate-500 mt-1">At least 8 characters</p>
+          <p className="text-xs text-slate-500 mt-1">**At least 8 characters**</p>
         </div>
 
         {/* ERROR */}
@@ -147,7 +150,7 @@ const Register = () => {
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-black text-white py-2 rounded hover:bg-gray-800 disabled:opacity-50"
+          className="w-full py-3 bg-[#2563EB] hover:bg-blue-700 text-white rounded-lg font-bold shadow-md shadow-blue-100 active:scale-[0.98] transition-all flex justify-center items-center gap-2"
         >
           {isLoading ? "Creating account..." : "Register"}
         </button>

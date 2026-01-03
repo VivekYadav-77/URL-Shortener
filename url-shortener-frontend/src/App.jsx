@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useGetMeQuery } from "./Features/auth/authapi";
-import { useAppDispatch } from "./App/hook";
+import { useAppDispatch,useAppSelector } from "./App/hook";
 import { setUser, clearUser } from "./Features/auth/authSlice";
 import CreateUrl from "./Pages/CreateUrl";
 import Login from "./Pages/Login";
@@ -14,20 +14,27 @@ import Profile from "./Pages/Profile";
 import UserDashboard from "./Pages/Dashboard";
 function App() {
   const dispatch = useAppDispatch();
+  const { authChecked } = useAppSelector((state) => state.auth);
 
-  const { data,isError} = useGetMeQuery(undefined, {
-    refetchOnMountOrArgChange: true,
-  });
+  const { data, isSuccess, isError } = useGetMeQuery();
 
   useEffect(() => {
-    if (data) {
+    if (isSuccess && data) {
       dispatch(setUser(data));
     }
 
-    if (isError?.status === 401) {
+    if (isError && isError.status === 401) {
       dispatch(clearUser());
     }
-  }, [data,isError, dispatch]);
+  }, [data, isSuccess, isError, dispatch]);
+
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <BrowserRouter>
