@@ -70,11 +70,12 @@ export const login = async (req, res) => {
 export const refresh = async (req, res) => {
   const token = req.cookies.refreshToken;
   if (!token) {
+    console.log("hee")
     return res.status(401).json({ message: "No refresh token" });
   }
   let payload;
   try {
-    payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET);
+    payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
   } catch {
     return res.status(401).json({ message: "Invalid refresh token" });
   }

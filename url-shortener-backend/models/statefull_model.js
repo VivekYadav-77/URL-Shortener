@@ -30,10 +30,7 @@ const refreshTokenSchema = new mongoose.Schema({
   ip: String,
   userAgent: String,
 
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+  
+},{timestamps:true});
 const RefreshTokenCollection = mongoose.model("RefreshToken", refreshTokenSchema);
 export default RefreshTokenCollection

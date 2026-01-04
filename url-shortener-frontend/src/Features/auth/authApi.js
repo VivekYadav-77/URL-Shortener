@@ -20,6 +20,7 @@ export const authApi = createApi({
     }),
     getMe: builder.query({
       query: () => "/users/me",
+      providesTags: ["User"],
     }),
     logout: builder.mutation({
       query: () => ({

@@ -69,6 +69,12 @@ const dispatch = useAppDispatch()
           >
             Profile
           </NavLink>
+          <NavLink to="/history"
+           className={({ isActive }) =>
+              `${navBase} ${isActive ? navActive : navInactive}`
+            }
+          >History</NavLink>
+
         </div>
 
         {/* USER / ACTIONS */}

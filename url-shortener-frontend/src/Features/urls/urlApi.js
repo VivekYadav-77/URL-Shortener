@@ -37,7 +37,12 @@ getUrlStats: builder.query({
         method: "DELETE"
       }),
       invalidatesTags: ["Urls"]
-    })
+    }),
+    getHistoryUrls: builder.query({
+  query: () => "/urls/history",
+  providesTags: ["Urls"]
+}),
+
   })
 });
 
@@ -47,4 +52,5 @@ export const {
   useUpdateUrlMutation,
   useDeleteUrlMutation,
   useGetUrlStatsQuery,
+  useGetHistoryUrlsQuery,
 } = urlApi;

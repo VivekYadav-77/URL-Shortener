@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
-import { useLoginMutation } from "../Features/auth/authapi.js";
+import { useLoginMutation ,useGetMeQuery} from "../Features/auth/authapi.js";
 import { useAppDispatch, useAppSelector } from "../App/hook.js";
 import { setUser } from "../Features/auth/authSlice.js";
 
@@ -13,18 +13,18 @@ const Login = () => {
   const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
-  const [login, { isLoading, isError, error, data }] =
-    useLoginMutation();
+  const [login, { isLoading, isError, error, isSuccess }] = useLoginMutation();
+const { data: me } = useGetMeQuery(undefined, {
+  skip: !isSuccess,
+});
 
-  useEffect(() => {
-    console.log("data",data)
-    if (data?.user) {
-      console.log(data)
-    dispatch(setUser(data.user));
+  
+useEffect(() => {
+  if (me) {
+    dispatch(setUser(me));
     navigate("/", { replace: true });
   }
-  }, [data, dispatch, navigate]);
-
+}, [me, dispatch, navigate]);
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!email || !password) return;

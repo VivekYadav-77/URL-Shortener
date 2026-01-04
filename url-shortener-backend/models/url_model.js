@@ -31,11 +31,19 @@ const urlSchema = new mongoose.Schema({
       type: Date,
       default: null
     },
+    deletedAt: {
+    type: Date,
+    default: null
+  },
+  status: {
+    type: String,
+    enum: ["active","inactive", "expired", "deleted"],
+    default: "active"
+  },
     abuseScore: {
   type: Number,
   default: 0
 },
-
 lastAbuseAt: {
   type: Date,
   default: null

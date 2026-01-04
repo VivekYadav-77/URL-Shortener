@@ -45,8 +45,6 @@ const Profile = () => {
       const r = await updateMe({ name }).unwrap();
       dispatch(setUser(r));
       showFeedback("success", "Profile updated successfully");
-      console.log("api call");
-      console.log(r);
     } catch (err) {
       showFeedback("error", err?.data?.message || "Profile update failed");
     }

@@ -14,7 +14,7 @@ const UserDashboard = () => {
     data: urls = [],
     isLoading,
     isError,
-  } = useGetMyUrlsQuery(); // ✅ USER-SCOPED DATA
+  } = useGetMyUrlsQuery(); 
 
   const [updateUrl] = useUpdateUrlMutation();
   const [deleteUrl] = useDeleteUrlMutation();
