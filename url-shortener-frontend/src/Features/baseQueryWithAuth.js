@@ -22,7 +22,7 @@ export const baseQueryWithAuth = async (args, api, extraOptions) => {
       isRefreshing = false;
 
       if (refreshResult.data) {
-        result = await baseQuery(args, api, extraOptions);
+        return await baseQuery(args, api, extraOptions);
       } else {
         api.dispatch(clearUser());
       }

@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { BarChart2, Copy, Trash2 } from "lucide-react";
 
-const UrlItem = memo(({ url, onToggle, onDelete, onStats }) => {
+const UrlItem = memo(({ url, onToggle, onDelete, onStats, onCopy }) => {
   const shortUrl = `${window.location.origin}/${url.shortCode}`;
 
   return (
@@ -12,6 +12,7 @@ const UrlItem = memo(({ url, onToggle, onDelete, onStats }) => {
         p-5 flex flex-col gap-3
       "
     >
+      {/* URL INFO */}
       <div>
         <p className="font-semibold text-[#2563EB] break-all">
           {shortUrl}
@@ -21,12 +22,11 @@ const UrlItem = memo(({ url, onToggle, onDelete, onStats }) => {
         </p>
       </div>
 
+      {/* STATUS */}
       <div className="flex items-center gap-4 text-sm">
         <span
           className={`flex items-center gap-1 ${
-            url.isActive
-              ? "text-[#10B981]"
-              : "text-slate-400"
+            url.isActive ? "text-[#10B981]" : "text-slate-400"
           }`}
         >
           ● {url.isActive ? "Active" : "Disabled"}
@@ -37,48 +37,49 @@ const UrlItem = memo(({ url, onToggle, onDelete, onStats }) => {
         </span>
       </div>
 
+      {/* ACTIONS */}
       <div className="flex items-center gap-2 mt-2">
+        {/* COPY */}
         <button
-          onClick={() => navigator.clipboard.writeText(shortUrl)}
+          onClick={() => onCopy(shortUrl)}
           className="
-            bg-blue-500 flex items-center gap-1
-            px-3 py-1.5 text-sm
-            border rounded-md
-            hover:bg-blue-300
+            bg-blue-600 flex items-center gap-1
+            px-3 py-1.5 text-sm text-white
+            rounded-md hover:bg-blue-400
           "
         >
           <Copy size={14} /> Copy
         </button>
 
+        {/* STATS */}
         <button
           onClick={() => onStats?.(url._id)}
           className="
-           bg-yellow-500 flex items-center gap-1
+            bg-yellow-600 flex items-center gap-1
             px-3 py-1.5 text-sm
-            border rounded-md
-            hover:bg-yellow-300
+            rounded-md hover:bg-yellow-400
           "
         >
           <BarChart2 size={14} /> Stats
         </button>
 
+        {/* TOGGLE */}
         <button
           onClick={() => onToggle(url)}
           className="
-           bg-red-500 px-3 py-1.5 text-sm
-            border rounded-md
-            hover:bg-red-400
+            bg-red-600 px-3 py-1.5 text-sm text-white
+            rounded-md hover:bg-red-400
           "
         >
           {url.isActive ? "Disable" : "Enable"}
         </button>
 
+        {/* DELETE */}
         <button
           onClick={() => onDelete(url._id)}
           className="
             ml-auto text-red-600
-            hover:bg-red-50
-            p-2 rounded-md
+            hover:bg-red-50 p-2 rounded-md
           "
         >
           <Trash2 size={16} />

@@ -3,6 +3,7 @@ import { validateUrl } from "../utils/validateUrls.js";
 import { validateAlias } from "../utils/validateAlias.js";
 import { generateShortCode } from "../utils/generateShortCode.js";
 import { isUrlSafe } from "../utils/googlesafecheck.js";
+import redis from "../config/redish.js";
 export const createShortUrl = async (req, res) => {
   const { originalUrl, customAlias, expiresAt } = req.body;
   if (!originalUrl || !validateUrl(originalUrl)) {
@@ -39,11 +40,16 @@ export const createShortUrl = async (req, res) => {
   let expiresAtFinal;
   if (expiresAt) {
     const requested = new Date(expiresAt).getTime();
-    if (isNaN(requested) || requested - now > MAX_EXPIRY) {
+    if (isNaN(requested) ||requested<= now) {
       return res.status(400).json({
         message: "Expiry must be within 7 days",
       });
     }
+  if (requested - now > MAX_EXPIRY) {
+    return res.status(400).json({
+      message: "Expiry must be within 7 days",
+    });
+  }
     expiresAtFinal = new Date(requested);
   } else {
     expiresAtFinal = new Date(now + DEFAULT_EXPIRY);
@@ -80,19 +86,10 @@ export const deleteUrl = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const url = await UrlCollection.findOneAndUpdate(
-      {
-        $set: {
-          isActive: false,
-          status: "deleted",
-          deletedAt: new Date(),
-          expiresAt: new Date(),
-        },
-      },
-      {
-        new: true,
-      }
-    );
+    const url = await UrlCollection.findOne({
+      _id: id,
+      owner: req.userId,
+    });
 
     if (!url) {
       return res
@@ -100,11 +97,19 @@ export const deleteUrl = async (req, res, next) => {
         .json({ message: "URL not found or not authorized" });
     }
 
+    url.isActive = false;
+    url.status = "deleted";
+    url.deletedAt = new Date();
+    url.expiresAt = new Date();
+
+    await url.save();
+    await redis.del(`url:${url.shortCode}`);
     res.json({ message: "URL deleted and expired successfully" });
   } catch (err) {
     next(err);
   }
 };
+
 
 export const getUrlStats = async (req, res, next) => {
   try {
@@ -150,7 +155,7 @@ export const updateUrl = async (req, res, next) => {
     url.status = isActive ? "active" : "inactive";
 
     await url.save();
-
+    await redis.del(`url:${url.shortCode}`);
     res.status(200).json(url);
   } catch (err) {
     next(err);
@@ -158,9 +163,13 @@ export const updateUrl = async (req, res, next) => {
 };
 
 export const getUrlById = async (req, res, next) => {
+   const { id } = req.params;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ message: "Invalid URL ID" });
+  }
   try {
     const url = await UrlCollection.findOne({
-      _id: req.params.id,
+      _id: id,
       owner: req.userId,
     });
 

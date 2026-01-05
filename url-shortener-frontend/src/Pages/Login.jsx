@@ -10,26 +10,30 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const dispatch = useAppDispatch();
 
   const navigate = useNavigate();
   const [login, { isLoading, isError, error, isSuccess }] = useLoginMutation();
-const { data: me } = useGetMeQuery(undefined, {
-  skip: !isSuccess,
-});
-
+ const { isAuthenticated, authChecked } = useAppSelector(
+    (state) => state.auth
+  );
   
 useEffect(() => {
-  if (me) {
-    dispatch(setUser(me));
-    navigate("/", { replace: true });
-  }
-}, [me, dispatch, navigate]);
+    if (authChecked && isAuthenticated) {
+      navigate("/", { replace: true });
+    }
+  }, [authChecked, isAuthenticated, navigate]);
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!email || !password) return;
     login({ email, password });
   };
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4 font-sans">

@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useGetMeQuery } from "./Features/auth/authapi";
-import { useAppDispatch,useAppSelector } from "./App/hook";
+import { useAppDispatch} from "./App/hook";
 import { setUser, clearUser ,markAuthChecked} from "./Features/auth/authSlice";
 import CreateUrl from "./Pages/CreateUrl";
 import Login from "./Pages/Login";
@@ -16,15 +16,26 @@ import History from "./Pages/UrlsHistory";
 function App() {
   const dispatch = useAppDispatch();
 
-  const { data, isSuccess, isError } = useGetMeQuery();
+  const { data, isSuccess, isError ,isFetching} = useGetMeQuery();
 
   useEffect(() => {
     if (isSuccess && data) {
       dispatch(setUser(data));
-    } else if (isError) {
+      dispatch(markAuthChecked());
+    }
+
+    if (isError) {
       dispatch(clearUser());
+      dispatch(markAuthChecked());
     }
   }, [isSuccess, isError, data, dispatch]);
+  if (isFetching) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
   return (
     <BrowserRouter>
       <Routes>
