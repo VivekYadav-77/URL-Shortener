@@ -1,5 +1,5 @@
-import UrlCollection from "../models/url_model.js";
 import redis from "../config/redish.js";
+import UrlCollection from "../models/url_model.js";
 export const expireUrlsJob = async () => {
   const now = new Date();
 

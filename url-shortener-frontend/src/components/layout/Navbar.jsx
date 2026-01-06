@@ -12,7 +12,7 @@ const dispatch = useAppDispatch()
     try {
       const d = await logout().unwrap();
       console.log(d)
-      dispatch(clearUser)
+      dispatch(clearUser())
       navigate("/login");
     } catch {
       console.error("Logout failed")
