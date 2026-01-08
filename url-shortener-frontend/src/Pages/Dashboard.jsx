@@ -1,5 +1,5 @@
 import Navbar from "../components/layout/Navbar";
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   useGetMyUrlsQuery,
@@ -15,7 +15,6 @@ const UserDashboard = () => {
 
   const [updateUrl] = useUpdateUrlMutation();
   const [deleteUrl] = useDeleteUrlMutation();
-  // TOP of component
   const [feedback, setFeedback] = useState(null);
 
   const showFeedback = (message, type = "success") => {
@@ -23,22 +22,20 @@ const UserDashboard = () => {
     setTimeout(() => setFeedback(null), 2500);
   };
 
-  const handleToggle = async(url) => {
+  const handleToggle = async (url) => {
     try {
       await updateUrl({
         id: url._id,
         data: { isActive: !url.isActive },
       }).unwrap();
 
-      showFeedback(
-        url.isActive ? "URL disabled" : "URL enabled"
-      );
+      showFeedback(url.isActive ? "URL disabled" : "URL enabled");
     } catch {
       showFeedback("Failed to update URL", "error");
     }
   };
 
-  const handleDelete = async(id) => {
+  const handleDelete = async (id) => {
     if (!confirm("Delete this URL?")) return;
 
     try {
@@ -57,19 +54,18 @@ const UserDashboard = () => {
     <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
       {feedback && (
-        <div
-          className={`
-            fixed top-5 right-5 z-50
-            px-4 py-3 rounded-lg shadow-lg text-sm font-semibold
-            transition-all
-            ${
-              feedback.type === "success"
-                ? "bg-green-600 text-white"
-                : "bg-red-600 text-white"
-            }
-          `}
-        >
-          {feedback.message}
+        <div className="fixed bottom-6 right-6 z-50">
+          <div
+            className={`px-4 py-3 rounded-lg shadow-lg text-sm font-semibold
+        ${
+          feedback.type === "success"
+            ? "bg-green-600 text-white"
+            : "bg-red-600 text-white"
+        }
+      `}
+          >
+            {feedback.message}
+          </div>
         </div>
       )}
 
@@ -133,7 +129,7 @@ const UserDashboard = () => {
             </button>
           </div>
         )}
-        
+
         {/* LIST */}
         {!isLoading && urls.length > 0 && (
           <UrlList

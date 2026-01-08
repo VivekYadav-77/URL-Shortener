@@ -1,8 +1,14 @@
 import { memo } from "react";
 import { BarChart2, Copy, Trash2 } from "lucide-react";
-
+import {
+  getUrlStatusLabel,
+  getStatusStyles,
+} from "../../utils/urlStatusLabel.js";
+import { getActionLabel } from "../../utils/urlStatusLabel.js";
 const UrlItem = memo(({ url, onToggle, onDelete, onStats, onCopy }) => {
   const shortUrl = `${window.location.origin}/${url.shortCode}`;
+  const statusLabel = getUrlStatusLabel(url);
+  const statusStyle = getStatusStyles(statusLabel);
 
   return (
     <div
@@ -14,12 +20,8 @@ const UrlItem = memo(({ url, onToggle, onDelete, onStats, onCopy }) => {
     >
       {/* URL INFO */}
       <div>
-        <p className="font-semibold text-[#2563EB] break-all">
-          {shortUrl}
-        </p>
-        <p className="text-sm text-slate-500 truncate">
-          {url.originalUrl}
-        </p>
+        <p className="font-semibold text-[#2563EB] break-all">{shortUrl}</p>
+        <p className="text-sm text-slate-500 truncate">{url.originalUrl}</p>
       </div>
 
       {/* STATUS */}
@@ -31,10 +33,15 @@ const UrlItem = memo(({ url, onToggle, onDelete, onStats, onCopy }) => {
         >
           ● {url.isActive ? "Active" : "Disabled"}
         </span>
-
-        <span className="text-slate-500">
-          {url.clicks || 0} clicks
+        <span className={`px-3 py-1 rounded-full font-semibold ${statusStyle}`}>
+          {statusLabel}
         </span>
+        {getActionLabel(url) && (
+          <span className="text-xs font-semibold text-slate-500">
+            {getActionLabel(url)}
+          </span>
+        )}
+        <span className="text-slate-500">{url.clicks || 0} clicks</span>
       </div>
 
       {/* ACTIONS */}

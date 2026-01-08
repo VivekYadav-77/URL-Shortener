@@ -1,133 +1,44 @@
 import Navbar from "../components/layout/Navbar";
-import { useGetAbusedUrlsQuery,useDisableUrlByAdminMutation,useGetPlatformStatsQuery,useGetAllUrlsQuery
- } from "../Features/admin/adminApi";
- const AdminDashboard = () => {
-  const { data: stats } = useGetPlatformStatsQuery();
-  const { data: abusedUrls, isLoading } = useGetAbusedUrlsQuery();
-  const [disableUrl] = useDisableUrlByAdminMutation();
-const { data: allUrls, isLoading: loadingAll } = useGetAllUrlsQuery();
+import {useGetAdminStatsQuery} from "../Features/admin/adminApi.js"
+
+const StatCard = ({ label, value, color }) => (
+  <div className={`p-6 rounded-xl shadow-md border bg-white`}>
+    <p className="text-slate-500 text-sm">{label}</p>
+    <p className={`text-3xl font-bold mt-2 ${color}`}>{value}</p>
+  </div>
+);
+
+const AdminDashboard = () => {
+  const { data, isLoading } = useGetAdminStatsQuery();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#F8FAFC]">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto p-6 space-y-8">
-        <h2 className="text-2xl font-bold">Admin Dashboard</h2>
+      <main className="max-w-6xl mx-auto px-6 py-10">
+        <h1 className="text-3xl font-bold text-[#1E293B] mb-8">
+          Admin Dashboard
+        </h1>
 
-        {/* PLATFORM STATS */}
-        {stats && (
-          <div className="grid grid-cols-3 gap-4">
-            <Stat label="Users" value={stats.totalUsers} />
-            <Stat label="URLs" value={stats.totalUrls} />
-            <Stat label="Abused URLs" value={stats.abusedUrls} />
-          </div>
-        )}
-
-        {/* ABUSED URL LIST */}
-        <div className="bg-white rounded shadow">
-          <h3 className="text-lg font-semibold p-4 border-b">
-            Abused URLs
-          </h3>
-
-          {isLoading && <p className="p-4">Loading...</p>}
-
-          {!isLoading && abusedUrls?.length === 0 && (
-            <p className="p-4 text-gray-500">
-              No abused URLs 🎉
-            </p>
-          )}
-
-          {!isLoading &&
-            abusedUrls?.map((url) => (
-              <div
-                key={url._id}
-                className="p-4 flex justify-between items-center border-t"
-              >
-                <div>
-                  <p className="font-medium">
-                    {url.shortCode}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {url.owner?.email}
-                  </p>
-                  <p className="text-sm text-red-600">
-                    Abuse score: {url.abuseScore}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => disableUrl(url._id)}
-                  className="bg-red-600 text-white px-3 py-1 rounded"
-                >
-                  Disable
-                </button>
-              </div>
-            ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <StatCard label="Total URLs" value={data.totalUrls} color="text-blue-600" />
+          <StatCard label="Active URLs" value={data.activeUrls} color="text-green-600" />
+          <StatCard label="Expired URLs" value={data.expiredUrls} color="text-yellow-600" />
+          <StatCard label="Deleted URLs" value={data.deletedUrls} color="text-red-600" />
+          <StatCard label="Total Clicks" value={data.totalClicks} color="text-indigo-600" />
+          <StatCard label="URLs with Abuse Issues" value={data.abuseUrls} color="text-orange-600" />
         </div>
-        {/* ALL URLS */}
-<div className="bg-white rounded shadow">
-  <h3 className="text-lg font-semibold p-4 border-b">
-    All URLs
-  </h3>
-
-  {loadingAll && <p className="p-4">Loading...</p>}
-
-  {!loadingAll && allUrls?.length === 0 && (
-    <p className="p-4 text-gray-500">
-      No URLs found
-    </p>
-  )}
-
-  {!loadingAll &&
-    allUrls?.map((url) => (
-      <div
-        key={url._id}
-        className="p-4 flex justify-between items-center border-t"
-      >
-        <div>
-          <p className="font-medium">
-            {url.shortCode}
-          </p>
-          <p className="text-sm text-gray-500">
-            {url.owner?.email}
-          </p>
-          <p className="text-sm text-gray-400 truncate max-w-md">
-            {url.originalUrl}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-sm ${
-              url.isActive ? "text-green-600" : "text-red-600"
-            }`}
-          >
-            {url.isActive ? "Active" : "Disabled"}
-          </span>
-
-          {url.isActive && (
-            <button
-              onClick={() => disableUrl(url._id)}
-              className="bg-red-600 text-white px-3 py-1 rounded"
-            >
-              Disable
-            </button>
-          )}
-        </div>
-      </div>
-    ))}
-</div>
-
       </main>
     </div>
   );
 };
-
-const Stat = ({ label, value }) => (
-  <div className="bg-white p-4 rounded shadow">
-    <p className="text-sm text-gray-500">{label}</p>
-    <p className="text-2xl font-bold">{value}</p>
-  </div>
-);
 
 export default AdminDashboard;
