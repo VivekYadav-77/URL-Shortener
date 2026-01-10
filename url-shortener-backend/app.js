@@ -12,8 +12,8 @@ import { redisRateLimit } from './middleware/redisRateLimiting.js'
 import { abuseGuard } from './middleware/abuse_middleware.js'
 import admin_router from './routes/admin_routes.js'
 import user_routers from './routes/user_routes.js'
-import "./crons/cronexpireUrlsJob.js"
-import "./crons/cronRedisStats.js"
+//import "./crons/cronexpireUrlsJob.js"
+//import "./crons/cronRedisStats.js"
 const app = express()
 app.use(helmet( helmet({
     contentSecurityPolicy: {

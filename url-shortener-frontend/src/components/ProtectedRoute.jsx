@@ -2,7 +2,7 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAppSelector } from "../App/hook";
 
 const ProtectedRoute = () => {
-  const { isAuthenticated, authChecked } = useAppSelector(
+  const { isAuthenticated, authChecked,user } = useAppSelector(
     (state) => state.auth
   );
 
@@ -12,6 +12,9 @@ const ProtectedRoute = () => {
         Loading...
       </div>
     );
+  }
+  if (user?.role === "admin") {
+    return <Navigate to="/admin" replace />;
   }
 
   if (!isAuthenticated) {

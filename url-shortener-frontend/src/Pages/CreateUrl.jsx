@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/layout/Navbar";
 import { useCreateUrlMutation } from "../Features/urls/urlApi";
-
+import UserLayout from "./UserLayout";
 const CreateUrl = () => {
   const [originalUrl, setOriginalUrl] = useState("");
   const [customAlias, setCustomAlias] = useState("");
@@ -64,8 +64,8 @@ const CreateUrl = () => {
   };
 
   return (
+    <UserLayout>
     <div className="min-h-screen bg-[#F8FAFC]">
-      <Navbar />
 
       <main className="max-w-2xl mx-auto px-6 py-12">
         {/* HEADER */}
@@ -201,6 +201,7 @@ const CreateUrl = () => {
         </form>
       </main>
     </div>
+  </UserLayout>
   );
 };
 

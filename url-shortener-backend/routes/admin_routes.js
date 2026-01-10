@@ -2,7 +2,7 @@ import express from "express";
 import authMiddleware from "../middleware/auth_middleware.js";
 import adminMiddleware from "../middleware/admin_middleware.js";
 
-import {getAdminStats,getAllUrls,disableUrlByAdmin,deleteUrlByAdmin,getAbuseUrls, adminEnableUrl,getAllUsers,getUserUrls} from "../controllers/admin_controller.js";
+import {getAdminStats,getAllUrls,disableUrlByAdmin,deleteUrlByAdmin,getAbuseUrls, adminEnableUrl,getAllUsers,getUserUrls, getSingleUserProfile} from "../controllers/admin_controller.js";
 
 const admin_router = express.Router();
 admin_router.use(authMiddleware, adminMiddleware);
@@ -15,6 +15,7 @@ admin_router.delete("/url/:id", deleteUrlByAdmin);
 admin_router.get("/abuse", getAbuseUrls);
 admin_router.get("/users",getAllUsers);
 admin_router.get("/users/:id/urls",  getUserUrls);
+admin_router.get("/users/:id",getSingleUserProfile)
 
 
 export default admin_router;

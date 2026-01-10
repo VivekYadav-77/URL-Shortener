@@ -2,9 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Input from "../components/ui/Input.jsx";
 import Button from "../components/ui/Button.jsx";
-import { useLoginMutation ,useGetMeQuery} from "../Features/auth/authapi.js";
-import { useAppDispatch, useAppSelector } from "../App/hook.js";
-import { setUser } from "../Features/auth/authSlice.js";
+import { useLoginMutation} from "../Features/auth/authapi.js";
+import {  useAppSelector } from "../App/hook.js";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -12,16 +11,20 @@ const Login = () => {
 
 
   const navigate = useNavigate();
-  const [login, { isLoading, isError, error, isSuccess }] = useLoginMutation();
- const { isAuthenticated, authChecked } = useAppSelector(
+  const [login, { isLoading, isError, error }] = useLoginMutation();
+ const { isAuthenticated, authChecked,user } = useAppSelector(
     (state) => state.auth
   );
   
 useEffect(() => {
     if (authChecked && isAuthenticated) {
-      navigate("/", { replace: true });
+      if (user.role === "admin") {
+        navigate("/admin", { replace: true });
+      } else {
+        navigate("/", { replace: true });
+      }
     }
-  }, [authChecked, isAuthenticated, navigate]);
+  }, [authChecked, isAuthenticated, navigate,user]);
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!email || !password) return;

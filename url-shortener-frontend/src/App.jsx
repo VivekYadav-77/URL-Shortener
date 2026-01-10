@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useGetMeQuery } from "./Features/auth/authapi";
-import { useAppDispatch} from "./App/hook";
-import { setUser, clearUser ,markAuthChecked} from "./Features/auth/authSlice";
+import { useAppDispatch } from "./App/hook";
+import { setUser, clearUser, markAuthChecked } from "./Features/auth/authSlice";
 import CreateUrl from "./Pages/CreateUrl";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
@@ -13,10 +13,14 @@ import AdminDashboard from "./Pages/AdminDashboard";
 import Profile from "./Pages/Profile";
 import UserDashboard from "./Pages/Dashboard";
 import History from "./Pages/UrlsHistory";
+import AdminUsersPage from "./Pages/AdminUsersPage";
+import AdminUserProfile from "./Pages/AdminUserProfile";
+import AdminUrls from "./Pages/AdminUrl";
+import AdminAbuseUrls from "./Pages/AdminAbuseUrl";
 function App() {
   const dispatch = useAppDispatch();
 
-  const { data, isSuccess, isError ,isFetching} = useGetMeQuery();
+  const { data, isSuccess, isError, isFetching } = useGetMeQuery();
 
   useEffect(() => {
     if (isSuccess && data) {
@@ -32,7 +36,11 @@ function App() {
   if (isFetching) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        Loading...
+        <div className="flex-col gap-4 w-full flex items-center justify-center">
+          <div className="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full">
+            <div className="w-16 h-16 border-4 border-transparent text-black text-2xl animate-spin flex items-center justify-center border-t-black rounded-full"></div>
+          </div>
+        </div>
       </div>
     );
   }
@@ -44,6 +52,10 @@ function App() {
         {/*AdminRoute */}
         <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsersPage />} />
+          <Route path="/admin/users/:id" element={<AdminUserProfile />} />
+          <Route path="/admin/urls" element={<AdminUrls />} />
+          <Route path="/admin/abuse" element={<AdminAbuseUrls />} />
         </Route>
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>

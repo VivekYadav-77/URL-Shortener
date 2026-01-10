@@ -1,4 +1,6 @@
 import UrlCollection from "../models/url_model.js";
+import UserCollection from "../models/user_model.js";
+import mongoose from "mongoose";
 import redis from "../config/redish.js";
 export const getAdminStats = async (req, res, next) => {
   try {
@@ -173,7 +175,6 @@ export const getAbuseUrls = async (req, res, next) => {
   }
 };
 
-// GET /admin/users
 export const getAllUsers = async (req, res, next) => {
   try {
     const users = await UserCollection.find()
@@ -184,10 +185,15 @@ export const getAllUsers = async (req, res, next) => {
     next(err);
   }
 };
-// GET /admin/users/:id/urls
+
 export const getUserUrls = async (req, res, next) => {
+  const {id} = req.params
+  if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+  return res.status(400).json({ message: "Invalid user ID" });
+}
+
   try {
-    const urls = await UrlCollection.find({ owner: req.params.id })
+    const urls = await UrlCollection.find({ owner: id})
       .sort({ createdAt: -1 });
 
     res.json(urls);
@@ -195,3 +201,41 @@ export const getUserUrls = async (req, res, next) => {
     next(err);
   }
 };
+export const getSingleUserProfile = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+if (!id || !mongoose.Types.ObjectId.isValid(id)) {
+  return res.status(400).json({ message: "Invalid user ID" });
+}
+
+    const user = await UserCollection.findById(id).select("-password");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const urls = await UrlCollection.find({ owner: id }).sort({
+      createdAt: -1,
+    });
+
+    const stats = {
+      totalUrls: urls.length,
+      active: urls.filter((u) => u.status === "active").length,
+      inactive: urls.filter((u) => u.status === "inactive").length,
+      expired: urls.filter((u) => u.status === "expired").length,
+      deleted: urls.filter((u) => u.status === "deleted").length,
+      totalClicks: urls.reduce((sum, u) => sum + (u.clicks || 0), 0),
+      abuseUrls: urls.filter((u) => u.abuseScore > 0).length,
+    };
+
+    res.json({
+      user,
+      stats,
+      urls,
+    });
+  } catch (err) {
+    next(err);
+  }
+
+
+}

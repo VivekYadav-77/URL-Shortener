@@ -1,7 +1,7 @@
 import { useState } from "react";
 import Navbar from "../components/layout/Navbar";
 import { useGetHistoryUrlsQuery } from "../Features/urls/urlApi";
-
+import UserLayout from "./UserLayout";
 const History = () => {
   const { data: urls = [], isLoading, isError } =
     useGetHistoryUrlsQuery();
@@ -18,8 +18,8 @@ const History = () => {
   });
 
   return (
+    <UserLayout>
     <div className="min-h-screen bg-[#F8FAFC]">
-      <Navbar />
 
       <main className="max-w-6xl mx-auto px-6 py-10">
         {/* HEADER */}
@@ -135,6 +135,7 @@ const History = () => {
         )}
       </main>
     </div>
+    </UserLayout>
   );
 };
 

@@ -69,6 +69,7 @@ export const login = async (req, res) => {
 //Refresh
 export const refresh = async (req, res) => {
   const token = req.cookies.refreshToken;
+  console.log("token",token )
   if (!token) {
     console.log("hee")
     return res.status(401).json({ message: "No refresh token" });
@@ -76,14 +77,16 @@ export const refresh = async (req, res) => {
   let payload;
   try {
     payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+    console.log("payload",payload)
   } catch {
     return res.status(401).json({ message: "Invalid refresh token" });
   }
   const storedToken = await RefreshTokenCollection.findOne({ tokenId: payload.jti });
+  console.log("storedToken",storedToken)
     if (!storedToken || storedToken.revoked || storedToken.expiresAt < Date.now()) {
     return res.status(401).json({ message: "Refresh token revoked" });
   }
-    storedToken.revoked = true;
+  storedToken.revoked = true;
   const newTokenId = generateTokenID();
   storedToken.replacedByToken = newTokenId;
   await storedToken.save();
@@ -95,6 +98,7 @@ export const refresh = async (req, res) => {
     ip: req.ip,
     userAgent: req.headers["user-agent"]
   });
+  console.log("refreshtoken",newRefreshToken)
    const newAccessToken = generateAccessToken(payload.id);
   res.cookie("accessToken", newAccessToken, {
     httpOnly: true,

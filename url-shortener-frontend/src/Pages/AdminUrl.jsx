@@ -1,206 +1,220 @@
 import { useState } from "react";
-import Navbar from "../components/layout/Navbar";
 import {
   useGetAllAdminUrlsQuery,
   useAdminEnableUrlMutation,
   useAdminDisableUrlMutation,
   useAdminDeleteUrlMutation,
-} from "../Features/admin/adminApi.js"
+} from "../Features/admin/adminApi.js";
 
-const statusColors = {
-  active: "bg-green-100 text-green-700",
-  inactive: "bg-gray-200 text-gray-700",
-  expired: "bg-yellow-100 text-yellow-700",
-  deleted: "bg-red-100 text-red-700",
-};
+import AdminLayout from "./AdminLayout";
 
-const AdminUrls = () => {
+const STATUS_OPTIONS = [
+  { label: "All", value: "" },
+  { label: "Active", value: "active" },
+  { label: "Inactive", value: "inactive" },
+  { label: "Expired", value: "expired" },
+  { label: "Deleted", value: "deleted" },
+];
+
+const AdminURLsPage = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
 
   const { data: urls = [], isLoading } = useGetAllAdminUrlsQuery({
-    status: statusFilter || undefined,
+    status: statusFilter,
     page,
-    limit: 20,
+    limit: 15,
   });
 
   const [enableUrl] = useAdminEnableUrlMutation();
   const [disableUrl] = useAdminDisableUrlMutation();
   const [deleteUrl] = useAdminDeleteUrlMutation();
 
-  const [feedback, setFeedback] = useState(null);
-
-  const showFeedback = (message, type = "success") => {
-    setFeedback({ message, type });
-    setTimeout(() => setFeedback(null), 2500);
+  const handleEnable = async (id) => {
+    await enableUrl(id);
   };
 
-  const handleAction = async (actionFn, id, message) => {
-    try {
-      await actionFn(id).unwrap();
-      showFeedback(message);
-    } catch {
-      showFeedback("Something went wrong", "error");
+  const handleDisable = async (id) => {
+    await disableUrl(id);
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("You are deleting this URL permanently. Continue?")) {
+      await deleteUrl(id);
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <Navbar />
+    <AdminLayout>
+      <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">
+        All URLs
+      </h2>
 
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      {/* FILTERS + SEARCH */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
 
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-3xl font-bold text-[#1E293B]">Manage URLs</h2>
+        {/* STATUS FILTER */}
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setPage(1);
+            setStatusFilter(e.target.value);
+          }}
+          className="
+            px-4 py-2 rounded-lg border dark:border-gray-700
+            bg-white dark:bg-gray-800 text-slate-800 dark:text-gray-200
+          "
+        >
+          {STATUS_OPTIONS.map((s) => (
+            <option key={s.value} value={s.value}>
+              {s.label}
+            </option>
+          ))}
+        </select>
 
-          <select
-            className="border px-3 py-2 rounded-lg bg-white"
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">All URLs</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-            <option value="expired">Expired</option>
-            <option value="deleted">Deleted</option>
-          </select>
-        </div>
+        {/* SEARCH BAR */}
+        <input
+          type="text"
+          placeholder="Search by short code..."
+          onChange={() => {}}
+          className="
+            px-4 py-2 rounded-lg border dark:border-gray-700 w-full md:w-72
+            bg-white dark:bg-gray-800 text-slate-800 dark:text-gray-200
+          "
+        />
+      </div>
 
-        {/* FEEDBACK */}
-        {feedback && (
-          <div
-            className={`mb-4 px-4 py-3 rounded-lg font-semibold text-sm ${
-              feedback.type === "success"
-                ? "bg-green-100 text-green-700 border border-green-200"
-                : "bg-red-100 text-red-700 border border-red-200"
-            }`}
-          >
-            {feedback.message}
-          </div>
-        )}
+      {/* URL TABLE */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700 overflow-x-auto">
+        <table className="w-full min-w-225">
 
-        {/* TABLE */}
-        <div className="bg-white border rounded-xl p-4 overflow-x-auto shadow-sm">
-          {isLoading ? (
-            <div className="p-6 text-center">Loading...</div>
-          ) : urls.length === 0 ? (
-            <div className="p-6 text-center text-slate-500">No URLs found</div>
-          ) : (
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b">
-                  <th className="p-3">Short</th>
-                  <th className="p-3">Original</th>
-                  <th className="p-3">Owner</th>
-                  <th className="p-3">Clicks</th>
-                  <th className="p-3">Status</th>
-                  <th className="p-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {urls.map((url) => (
-                  <tr key={url._id} className="border-b">
-                    <td className="p-3 font-medium text-blue-600">
-                      {window.location.origin}/{url.shortCode}
-                    </td>
+          <thead className="bg-slate-100 dark:bg-gray-700 text-slate-700 dark:text-gray-200">
+            <tr>
+              <th className="p-3 text-left">Short URL</th>
+              <th className="p-3 text-left">Status</th>
+              <th className="p-3 text-left">Clicks</th>
+              <th className="p-3 text-left">Created</th>
+              <th className="p-3 text-left">Owner</th>
+              <th className="p-3 text-left">Actions</th>
+            </tr>
+          </thead>
 
-                    <td className="p-3 truncate max-w-xs">
-                      <span className="text-sm text-slate-600">
-                        {url.originalUrl}
-                      </span>
-                    </td>
+          <tbody>
+            {isLoading ? (
+              <tr>
+                <td colSpan="6" className="p-6 text-center">
+                  <span className="text-slate-600 dark:text-gray-300">
+                    Loading URLs…
+                  </span>
+                </td>
+              </tr>
+            ) : urls.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="p-6 text-center">
+                  <span className="text-slate-600 dark:text-gray-300">
+                    No URLs found.
+                  </span>
+                </td>
+              </tr>
+            ) : (
+              urls.map((url) => (
+                <tr
+                  key={url._id}
+                  className="
+                    border-t dark:border-gray-700 
+                    hover:bg-blue-50 dark:hover:bg-gray-700/40 transition
+                  "
+                >
+                  <td className="p-3 text-blue-600 dark:text-blue-400 break-all">
+                    {window.location.origin}/{url.shortCode}
+                  </td>
 
-                    <td className="p-3 text-sm text-slate-700">
-                      {url.owner?.email}
-                    </td>
-
-                    <td className="p-3 font-semibold">{url.clicks}</td>
-
-                    <td className="p-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusColors[url.status]}`}>
-                        {url.status.toUpperCase()}
-                      </span>
-                    </td>
-
-                    <td className="p-3 space-x-2">
-                      {/* ENABLE */}
-                      {url.status !== "active" && (
-                        <button
-                          onClick={() =>
-                            handleAction(
-                              enableUrl,
-                              url._id,
-                              "URL enabled"
-                            )
-                          }
-                          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600"
-                        >
-                          Enable
-                        </button>
-                      )}
-
-                      {/* DISABLE */}
-                      {url.status === "active" && (
-                        <button
-                          onClick={() =>
-                            handleAction(
-                              disableUrl,
-                              url._id,
-                              "URL disabled"
-                            )
-                          }
-                          className="px-3 py-1 bg-gray-600 text-white rounded hover:bg-gray-700"
-                        >
-                          Disable
-                        </button>
-                      )}
-                     
-
-                      {/* DELETE */}
-                      <button
-                        onClick={() =>
-                          handleAction(
-                            deleteUrl,
-                            url._id,
-                            "URL deleted"
-                          )
+                  <td className="p-3">
+                    <span
+                      className={`
+                        px-3 py-1 rounded-full text-xs font-semibold
+                        ${
+                          url.status === "active"
+                            ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                            : url.status === "inactive"
+                            ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300"
+                            : url.status === "deleted"
+                            ? "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300"
+                            : "bg-slate-200 text-slate-700 dark:bg-gray-700 dark:text-gray-300"
                         }
-                        className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                      `}
+                    >
+                      {url.status}
+                    </span>
+                  </td>
+
+                  <td className="p-3">{url.clicks}</td>
+
+                  <td className="p-3 text-sm text-slate-500 dark:text-gray-400">
+                    {new Date(url.createdAt).toLocaleDateString()}
+                  </td>
+
+                  <td className="p-3 text-sm text-slate-500 dark:text-gray-400">
+                    {url.owner?.email}
+                  </td>
+
+                  <td className="p-3 space-x-3">
+
+                    {url.status === "inactive" && (
+                      <button
+                        onClick={() => handleEnable(url._id)}
+                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
                       >
-                        Delete
+                        Enable
                       </button>
+                    )}
 
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
+                    {url.status === "active" && (
+                      <button
+                        onClick={() => handleDisable(url._id)}
+                        className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                      >
+                        Disable
+                      </button>
+                    )}
 
-        {/* PAGINATION */}
-        <div className="flex justify-center gap-4 mt-6">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-            className="px-4 py-2 bg-slate-200 rounded disabled:opacity-50"
-          >
-            Prev
-          </button>
+                    <button
+                      onClick={() => handleDelete(url._id)}
+                      className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
 
-          <button
-            onClick={() => setPage(page + 1)}
-            className="px-4 py-2 bg-slate-200 rounded"
-          >
-            Next
-          </button>
-        </div>
-      </main>
-    </div>
+        </table>
+      </div>
+
+      <div className="flex items-center justify-center gap-4 mt-6">
+        <button
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-gray-700 text-sm"
+        >
+          Previous
+        </button>
+
+        <span className="text-slate-700 dark:text-gray-300 font-semibold">
+          Page {page}
+        </span>
+
+        <button
+          onClick={() => setPage((p) => p + 1)}
+          className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-gray-700 text-sm"
+        >
+          Next
+        </button>
+      </div>
+
+    </AdminLayout>
   );
 };
 
-export default AdminUrls;
+export default AdminURLsPage;

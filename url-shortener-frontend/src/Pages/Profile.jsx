@@ -9,7 +9,7 @@ import {
   useChangePasswordMutation,
 } from "../Features/auth/authapi";
 import { useAppSelector, useAppDispatch } from "../App/hook";
-
+import UserLayout from "./UserLayout";
 const Profile = () => {
   const [updateMe, { isLoading: updatingProfile }] = useUpdateMeMutation();
   const [changePassword, { isLoading: changingPassword }] =
@@ -93,8 +93,8 @@ const Profile = () => {
   }, [feedback.message]);
 
   return (
+    <UserLayout>
     <div className="min-h-screen bg-[#F8FAFC]">
-      <Navbar />
 
       <main className="max-w-3xl mx-auto px-6 py-10">
         {/* HEADER */}
@@ -247,6 +247,7 @@ const Profile = () => {
         </form>
       </main>
     </div>
+    </UserLayout>
   );
 };
 

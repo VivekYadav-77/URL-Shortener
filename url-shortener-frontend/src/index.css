@@ -11,3 +11,7 @@
   /* This links the keyframes to a utility class name */
   --animate-shake: shake 0.2s ease-in-out 0s 2;
 }
+html.dark body {
+  background-color: #0d1117;
+  color: white;
+}

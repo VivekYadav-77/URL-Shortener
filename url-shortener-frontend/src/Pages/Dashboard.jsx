@@ -1,5 +1,4 @@
-import Navbar from "../components/layout/Navbar";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   useGetMyUrlsQuery,
@@ -7,6 +6,7 @@ import {
   useDeleteUrlMutation,
 } from "../Features/urls/urlApi";
 import UrlList from "./UrlList";
+import UserLayout from "./UserLayout";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -15,11 +15,12 @@ const UserDashboard = () => {
 
   const [updateUrl] = useUpdateUrlMutation();
   const [deleteUrl] = useDeleteUrlMutation();
+
   const [feedback, setFeedback] = useState(null);
 
   const showFeedback = (message, type = "success") => {
     setFeedback({ message, type });
-    setTimeout(() => setFeedback(null), 2500);
+    setTimeout(() => setFeedback(null), 2000);
   };
 
   const handleToggle = async (url) => {
@@ -28,16 +29,14 @@ const UserDashboard = () => {
         id: url._id,
         data: { isActive: !url.isActive },
       }).unwrap();
-
       showFeedback(url.isActive ? "URL disabled" : "URL enabled");
     } catch {
-      showFeedback("Failed to update URL", "error");
+      showFeedback("Failed to update", "error");
     }
   };
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this URL?")) return;
-
     try {
       await deleteUrl(id).unwrap();
       showFeedback("URL deleted");
@@ -45,49 +44,42 @@ const UserDashboard = () => {
       showFeedback("Delete failed", "error");
     }
   };
+
   const handleCopy = (shortUrl) => {
     navigator.clipboard.writeText(shortUrl);
-    showFeedback("Copied to clipboard");
+    showFeedback("Copied!");
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
-      <Navbar />
+    <UserLayout>
       {feedback && (
-        <div className="fixed bottom-6 right-6 z-50">
+        <div className="fixed bottom-6 right-6 z-50 animate-slideUp">
           <div
-            className={`px-4 py-3 rounded-lg shadow-lg text-sm font-semibold
-        ${
-          feedback.type === "success"
-            ? "bg-green-600 text-white"
-            : "bg-red-600 text-white"
-        }
-      `}
+            className={`px-4 py-3 rounded-lg shadow-lg text-sm text-white
+            ${feedback.type === "success" ? "bg-green-600" : "bg-red-600"}
+            `}
           >
             {feedback.message}
           </div>
         </div>
       )}
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
         {/* HEADER */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-3xl font-bold text-[#1E293B]">My URLs</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              Create, manage and track your shortened links
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">
+              My URLs
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Manage your shortened links
             </p>
           </div>
 
           <button
             onClick={() => navigate("/create")}
-            className="
-              inline-flex items-center justify-center
-              bg-[#2563EB] text-white
-              px-5 py-2.5 rounded-lg
-              hover:bg-blue-700 transition
-              shadow-sm
-            "
+            className="bg-blue-600 text-white px-5 py-2.5 rounded-lg
+            hover:bg-blue-700 active:scale-95 transition"
           >
             + Create URL
           </button>
@@ -95,37 +87,31 @@ const UserDashboard = () => {
 
         {/* LOADING */}
         {isLoading && (
-          <div className="bg-white border rounded-xl p-6">
-            Loading your URLs…
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border dark:border-gray-700">
+            Loading…
           </div>
         )}
 
         {/* ERROR */}
-        {isError && !isLoading && (
-          <div className="bg-white border rounded-xl p-6 text-red-600">
-            Failed to load your URLs. Please try again.
+        {isError && (
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border dark:border-gray-700 text-red-600">
+            Failed to load URLs.
           </div>
         )}
 
         {/* EMPTY */}
         {!isLoading && urls.length === 0 && (
-          <div className="bg-white rounded-xl p-12 text-center border">
-            <p className="text-lg font-medium text-[#1E293B]">
-              You haven’t created any URLs yet
-            </p>
-            <p className="text-sm text-slate-500 mt-2">
-              Shorten your first link and start tracking clicks
+          <div className="bg-white dark:bg-gray-800 p-10 text-center rounded-xl border dark:border-gray-700">
+            <p className="text-lg font-semibold dark:text-white">No URLs yet.</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              Shorten your first link
             </p>
 
             <button
               onClick={() => navigate("/create")}
-              className="
-                mt-6 bg-[#2563EB] text-white
-                px-6 py-2.5 rounded-lg
-                hover:bg-blue-700 transition
-              "
+              className="mt-6 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700"
             >
-              Create your first URL
+              Create URL
             </button>
           </div>
         )}
@@ -139,8 +125,8 @@ const UserDashboard = () => {
             onCopy={handleCopy}
           />
         )}
-      </main>
-    </div>
+      </div>
+    </UserLayout>
   );
 };
 
