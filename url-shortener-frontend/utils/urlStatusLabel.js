@@ -50,4 +50,3 @@ export const getActionLabel = (url) => {
 
   return null;
 };
-

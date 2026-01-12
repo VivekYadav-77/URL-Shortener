@@ -1,49 +1,70 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import Input from "../components/ui/Input.jsx";
-import Button from "../components/ui/Button.jsx";
-import { useLoginMutation} from "../Features/auth/authapi.js";
-import {  useAppSelector } from "../App/hook.js";
+import { useLoginMutation } from "../Features/auth/authapi";
+import { useAppSelector } from "../App/hook";
+import ThemeToggle  from "../components/ui/ThemeToggle";
+import Input from "../components/ui/Input";
+import Button from "../components/ui/Button";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-
   const navigate = useNavigate();
   const [login, { isLoading, isError, error }] = useLoginMutation();
- const { isAuthenticated, authChecked,user } = useAppSelector(
+
+  const { isAuthenticated, authChecked, user } = useAppSelector(
     (state) => state.auth
   );
-  
-useEffect(() => {
+
+  useEffect(() => {
     if (authChecked && isAuthenticated) {
-      if (user.role === "admin") {
-        navigate("/admin", { replace: true });
-      } else {
-        navigate("/", { replace: true });
-      }
+      if (user.role === "admin") navigate("/admin", { replace: true });
+      else navigate("/", { replace: true });
     }
-  }, [authChecked, isAuthenticated, navigate,user]);
+  }, [authChecked, isAuthenticated, navigate, user]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!email || !password) return;
     login({ email, password });
   };
+
   if (!authChecked) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center text-gray-600 dark:text-gray-300">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] px-4 font-sans">
+    <div
+      className="
+        min-h-screen flex items-center justify-center px-4 relative
+        bg-liner-to-br from-gray-100 to-gray-200
+        dark:bg-linear-to-br dark:from-gray-900 dark:to-black
+      "
+    >
+      {/* THEME TOGGLE */}
+      <div className="absolute top-6 right-6">
+        <ThemeToggle />
+      </div>
+
       <div className="w-full max-w-md">
-        {/* Brand Section */}
-        <div className="mb-10 text-center">
-          <svg
+
+        {/* LOGO + TITLE */}
+        <div className="text-center mb-10">
+          <div
+            className="
+              w-16 h-16 mx-auto rounded-2xl
+              flex items-center justify-center
+              bg-blue-600/10 dark:bg-blue-500/20
+              border border-blue-500/20 dark:border-blue-400/20
+              shadow-xl backdrop-blur-xl
+            "
+          >
+           <svg
             viewBox="-2.4 -2.4 28.80 28.80"
             id="link-alt"
             xmlns="http://www.w3.org/2000/svg"
@@ -85,90 +106,93 @@ useEffect(() => {
               ></line>
             </g>
           </svg>
-          <h1 className="text-3xl font-extrabold text-[#1E293B] tracking-tight">
-            Welcome back
+          </div>
+
+          <h1 className="text-3xl font-extrabold mt-4 text-gray-900 dark:text-white">
+            Welcome Back
           </h1>
-          <p className="text-slate-500 mt-2 font-medium">
-            Login to manage your short links
+          <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
+            Sign in to manage your links
           </p>
         </div>
 
-        {/* Form Card */}
+        {/* FORM CARD */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 p-8 space-y-5"
+          className="
+            bg-white/80 dark:bg-gray-800/80
+            backdrop-blur-xl border border-gray-300/30 dark:border-gray-700/40
+            shadow-2xl rounded-2xl p-8 space-y-6
+            transition
+          "
         >
-          <div className="space-y-4">
-            <Input
-              label="Email address"
-              placeholder="name@gmail.com"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="focus:ring-2 focus:ring-blue-500 transition-all"
-            />
+          {/* EMAIL */}
+          <Input
+            label="Email address"
+            type="email"
+            placeholder="name@gmail.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="w-full"
+          />
 
-            <div className="space-y-1">
-              <div className="flex justify-between items-center">
-              </div>
-              <Input
-                label="Password"
-                placeholder="••••••••"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </div>
+          {/* PASSWORD */}
+          <Input
+            label="Password"
+            type="password"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="w-full"
+          />
 
-          {/* Error Message with Icon */}
+          {/* ERROR MESSAGE */}
           {isError && (
-            <div className="flex items-center gap-2 p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 animate-shake">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
+            <div className="flex items-center gap-2 p-3 rounded-lg
+              bg-red-50 border border-red-200 text-red-600
+              dark:bg-red-900/40 dark:border-red-700 dark:text-red-300"
+            >
+              <span>⚠</span>
               <p className="text-xs font-semibold">
                 {error?.data?.message || "Invalid email or password"}
               </p>
             </div>
           )}
 
+          {/* SUBMIT BUTTON */}
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full py-3 bg-[#2563EB] hover:bg-blue-700 text-white rounded-lg font-bold shadow-md shadow-blue-100 active:scale-[0.98] transition-all flex justify-center items-center gap-2"
+            className="
+              w-full py-3
+              bg-blue-600 hover:bg-blue-700
+              text-white rounded-lg font-bold
+              shadow-lg shadow-blue-500/20
+              active:scale-95 transition
+            "
           >
             {isLoading ? (
-              <>
+              <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                 Signing in...
-              </>
+              </div>
             ) : (
               "Sign in"
             )}
           </Button>
         </form>
 
-        {/* Secondary Action */}
+        {/* CREATE ACCOUNT LINK */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-slate-500">
-            Don’t have an account?{" "}
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Don't have an account?{" "}
             <button
               onClick={() => navigate("/register")}
-              className="text-[#2563EB] font-bold hover:underline underline-offset-4"
+              className="text-blue-600 dark:text-blue-400 font-bold hover:underline underline-offset-4"
             >
-              Create free account
+              Create new account
             </button>
           </p>
         </div>

@@ -7,9 +7,7 @@ import { clearUser } from "../../Features/auth/authSlice";
 const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-
   const user = useAppSelector((state) => state.auth.user);
-
   const [logout] = useLogoutMutation();
 
   const handleLogout = async () => {
@@ -22,59 +20,74 @@ const Navbar = () => {
     }
   };
 
-  const navBase = "relative px-1 py-2 text-sm font-medium transition-colors";
-  const navActive =
-    "text-[#2563EB] after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-full after:bg-[#2563EB] after:rounded-full after:content-['']";
-  const navInactive = "text-slate-600 hover:text-[#1E293B]";
-
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b">
-  <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-    
-    {/* LOGO */}
-    <div
-      onClick={() =>
-        user?.role === "admin" ? navigate("/admin") : navigate("/")
-      }
-      className="flex items-center gap-2 cursor-pointer"
+    <nav
+      className="
+        fixed top-0 left-0 right-0 z-50
+        backdrop-blur-xl bg-white/80 dark:bg-gray-900/80
+        border-b border-gray-200 dark:border-gray-700
+        shadow-sm
+      "
     >
-      <div className="h-9 w-9 flex items-center justify-center text-[#2563EB]">
-        <LogoIcon />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+
+        {/* LEFT — BRAND */}
+        <div
+          onClick={() =>
+            user?.role === "admin" ? navigate("/admin") : navigate("/")
+          }
+          className="flex items-center gap-2 cursor-pointer"
+        >
+          <div className="h-10 w-10 flex items-center justify-center text-blue-600 dark:text-blue-400">
+            <LogoIcon />
+          </div>
+
+          <span className="text-xl font-extrabold tracking-tight text-gray-900 dark:text-white">
+            Shorty
+          </span>
+        </div>
+
+        {/* RIGHT — PROFILE + LOGOUT */}
+        <div className="flex items-center gap-3 sm:gap-4">
+
+          {/* PROFILE ICON */}
+          <div
+            onClick={() =>
+              user?.role === "admin"
+                ? navigate("/admin")
+                : navigate("/profile")
+            }
+            className="
+              h-9 w-9 sm:h-10 sm:w-10
+              rounded-full
+              bg-blue-600 dark:bg-blue-500
+              text-white flex items-center justify-center
+              font-semibold cursor-pointer
+              hover:scale-105 transition-all shadow
+            "
+            title={user?.name}
+          >
+            {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+          </div>
+
+          {/* LOGOUT BUTTON */}
+          <button
+            onClick={handleLogout}
+            className="
+              px-3 sm:px-4 py-2
+              text-sm font-semibold
+              rounded-lg
+              bg-red-600 text-white
+              hover:bg-red-700
+              transition shadow
+              whitespace-nowrap
+            "
+          >
+            Logout
+          </button>
+        </div>
       </div>
-      <span className="text-lg font-bold text-[#1E293B]">Shorty</span>
-    </div>
-
-    {/* PROFILE + LOGOUT */}
-    <div className="flex items-center gap-4">
-      <div
-        onClick={() =>
-          user?.role === "admin"
-            ? navigate("/admin")
-            : navigate("/profile")
-        }
-        className="
-          h-9 w-9 rounded-full
-          bg-[#2563EB] text-white
-          flex items-center justify-center
-          font-semibold cursor-pointer
-          hover:opacity-90 transition
-        "
-        title={user?.name}
-      >
-        {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
-      </div>
-
-      <button
-        onClick={handleLogout}
-        className="bg-[#eb2525] text-white px-3 py-2 rounded-lg hover:bg-red-400 transition"
-      >
-        Logout
-      </button>
-    </div>
-
-  </div>
-</nav>
-
+    </nav>
   );
 };
 
