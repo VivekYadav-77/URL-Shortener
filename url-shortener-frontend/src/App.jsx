@@ -6,7 +6,7 @@ import { setUser, clearUser, markAuthChecked } from "./Features/auth/authSlice";
 import CreateUrl from "./Pages/CreateUrl";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
-import ProtectedRoute from "./components/ProtectedRoute";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
 import UrlStats from "./Pages/UrlStats";
 import AdminRoute from "./components/layout/AdminRoute";
 import AdminDashboard from "./Pages/AdminDashboard";
@@ -25,13 +25,12 @@ function App() {
   useEffect(() => {
     if (isSuccess && data) {
       dispatch(setUser(data));
-      dispatch(markAuthChecked());
+     
     }
-
     if (isError) {
       dispatch(clearUser());
-      dispatch(markAuthChecked());
     }
+    dispatch(markAuthChecked());
   }, [isSuccess, isError, data, dispatch]);
   if (isFetching) {
     return (

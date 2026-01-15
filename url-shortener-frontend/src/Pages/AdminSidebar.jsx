@@ -1,57 +1,62 @@
 import { NavLink } from "react-router-dom";
-import { X } from "lucide-react"; 
+import { X } from "lucide-react";
+import { useTheme } from "../App/themeStore";
 
 export const Sidebar = ({ onNavigate, isMobile }) => {
+  const { theme } = useTheme();
+
+  const textNormal = theme === "light" ? "text-gray-800" : "text-gray-300";
+  const textMuted = theme === "light" ? "text-gray-500" : "text-gray-400";
+  const hoverBg = theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-700";
+  const closeBtnBg = theme === "light" ? "bg-gray-200" : "bg-gray-700";
+  const closeBtnHover = theme === "light" ? "hover:bg-gray-300" : "hover:bg-gray-600";
+
   const linkClass = ({ isActive }) =>
-    `block px-4 py-2.5 rounded-lg font-medium mb-2 
-     transition-colors
-     ${
-       isActive
-         ? "bg-blue-600 text-white"
-         : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-     }
+    `
+      block px-4 py-2.5 rounded-lg font-medium mb-2 transition
+      ${isActive
+        ? "bg-blue-600 text-white"
+        : `${textNormal} ${hoverBg}`
+      }
     `;
 
   return (
     <div className="relative h-full">
-<div className="flex justify-between items-center w-full px-2 mb-2">
-  {/* The Heading (Left Corner) */}
-  <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-    Admin Menu
-  </h3>
 
-  {/* The Button (Right Corner) */}
-  {isMobile && (
-    <button
-      onClick={onNavigate}
-      className="
-        md:hidden
-        bg-gray-200 dark:bg-gray-700
-        text-gray-700 dark:text-gray-200
-        p-2 rounded-md
-        hover:bg-gray-300 dark:hover:bg-gray-600
-        transition
-      "
-    >
-      <X size={18} />
-    </button>
-  )}
-</div>
-      
+      {/* HEADER ROW */}
+      <div className="flex justify-between items-center w-full px-2 mb-2">
+        <h3 className={`text-xs font-semibold uppercase tracking-wider ${textMuted}`}>
+          Admin Menu
+        </h3>
 
-      <NavLink to="/admin" end className={linkClass}  onClick={onNavigate}>
+        {isMobile && (
+          <button
+            onClick={onNavigate}
+            className={`
+              md:hidden p-2 rounded-md transition
+              ${closeBtnBg} ${closeBtnHover}
+              ${textNormal}
+            `}
+          >
+            <X size={18} />
+          </button>
+        )}
+      </div>
+
+      {/* LINKS */}
+      <NavLink to="/admin" end className={linkClass} onClick={onNavigate}>
         Dashboard
       </NavLink>
 
-      <NavLink className={linkClass} to="/admin/users" onClick={onNavigate}>
+      <NavLink to="/admin/users" className={linkClass} onClick={onNavigate}>
         Users
       </NavLink>
 
-      <NavLink className={linkClass} to="/admin/urls" onClick={onNavigate}>
+      <NavLink to="/admin/urls" className={linkClass} onClick={onNavigate}>
         URLs
       </NavLink>
 
-      <NavLink className={linkClass} to="/admin/abuse" onClick={onNavigate}>
+      <NavLink to="/admin/abuse" className={linkClass} onClick={onNavigate}>
         Abuse URLs
       </NavLink>
     </div>

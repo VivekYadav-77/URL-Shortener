@@ -17,7 +17,14 @@ const AdminDashboard = () => {
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="p-6 bg-white dark:bg-gray-800 border rounded-xl text-center">
+        <div
+          style={{
+            backgroundColor: "var(--bg-card)",
+            borderColor: "var(--border-main)",
+            color: "var(--text-body)"
+          }}
+          className="p-6 border rounded-xl text-center"
+        >
           Loading dashboard…
         </div>
       </AdminLayout>
@@ -33,54 +40,64 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <h1 className="text-3xl font-bold text-slate-900 dark:text-white mb-8">
+
+      {/* PAGE TITLE */}
+      <h1
+        style={{ color: "var(--text-header)" }}
+        className="text-3xl font-bold mb-8"
+      >
         📊 Analytics Dashboard
       </h1>
 
+      {/* TOP STATS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
-        <StatCard
-          title="Total URLs"
-          value={stats.totalUrls}
-          color="blue"
-        />
+        <StatCard title="Total URLs" value={stats.totalUrls} color="blue" />
+        <StatCard title="Active URLs" value={stats.activeUrls} color="green" />
+        <StatCard title="Expired URLs" value={stats.expiredUrls} color="yellow" />
+        <StatCard title="Deleted URLs" value={stats.deletedUrls} color="red" />
 
-        <StatCard
-          title="Active URLs"
-          value={stats.activeUrls}
-          color="green"
-        />
-
-        <StatCard
-          title="Expired URLs"
-          value={stats.expiredUrls}
-          color="yellow"
-        />
-
-        <StatCard
-          title="Deleted URLs"
-          value={stats.deletedUrls}
-          color="red"
-        />
       </div>
 
-
-      <div className="bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-xl p-6 mb-10">
-        <h2 className="text-xl font-bold mb-4 text-slate-900 dark:text-white">
+      {/* CHART BLOCK */}
+      <div
+        style={{
+          backgroundColor: "var(--bg-card)",
+          borderColor: "var(--border-main)",
+        }}
+        className="border rounded-xl p-6 mb-10 transition"
+      >
+        <h2
+          style={{ color: "var(--text-header)" }}
+          className="text-xl font-bold mb-4"
+        >
           URL Status Breakdown
         </h2>
 
         <div className="w-full h-72">
           <ResponsiveContainer>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-              <XAxis dataKey="name" stroke="#888" />
-              <YAxis stroke="#888" />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="#cccccc50" />
+
+              <XAxis
+                dataKey="name"
+                stroke="var(--text-muted)"
+              />
+
+              <YAxis stroke="var(--text-muted)" />
+
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "var(--bg-card)",
+                  borderColor: "var(--border-main)",
+                  color: "var(--text-header)",
+                }}
+              />
+
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke="#2563eb"
+                stroke="var(--accent-blue)"
                 strokeWidth={3}
                 dot={{ r: 5 }}
               />
@@ -89,20 +106,12 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-
+      {/* BOTTOM ROW */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
-        <StatCard
-          title="Total Clicks"
-          value={stats.totalClicks}
-          color="indigo"
-        />
+        <StatCard title="Total Clicks" value={stats.totalClicks} color="indigo" />
+        <StatCard title="Abuse URLs" value={stats.abuseUrls} color="rose" />
 
-        <StatCard
-          title="Abuse URLs"
-          value={stats.abuseUrls}
-          color="rose"
-        />
       </div>
 
     </AdminLayout>
@@ -113,24 +122,35 @@ export default AdminDashboard;
 
 
 
-
 const StatCard = ({ title, value, color }) => {
   const colors = {
-    blue: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300",
-    green:
-      "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300",
-    yellow:
-      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300",
-    red: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300",
-    indigo:
-      "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300",
-    rose: "bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300",
+    blue: "var(--accent-blue)",
+    green: "#16a34a",
+    yellow: "#ca8a04",
+    red: "#dc2626",
+    indigo: "#4f46e5",
+    rose: "#e11d48",
   };
 
   return (
-    <div className="p-6 bg-white dark:bg-gray-800 rounded-xl border dark:border-gray-700">
-      <p className="text-sm text-slate-500 dark:text-gray-400">{title}</p>
-      <p className={`mt-2 text-3xl font-bold ${colors[color]}`}>
+    <div
+      style={{
+        backgroundColor: "var(--bg-card)",
+        borderColor: "var(--border-main)",
+      }}
+      className="border rounded-xl p-6"
+    >
+      <p
+        style={{ color: "var(--text-muted)" }}
+        className="text-sm mb-2"
+      >
+        {title}
+      </p>
+
+      <p
+        style={{ color: colors[color] }}
+        className="text-3xl font-bold"
+      >
         {value}
       </p>
     </div>

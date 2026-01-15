@@ -1,8 +1,8 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useLogoutMutation } from "../../Features/auth/authapi";
 import { useAppSelector, useAppDispatch } from "../../App/hook";
-import LogoIcon from "../ui/Logo";
 import { clearUser } from "../../Features/auth/authSlice";
+import LogoIcon from "../ui/Logo";
 
 const Navbar = () => {
   const navigate = useNavigate();
@@ -24,9 +24,12 @@ const Navbar = () => {
     <nav
       className="
         fixed top-0 left-0 right-0 z-50
-        backdrop-blur-xl bg-white/80 dark:bg-gray-900/80
+        backdrop-blur-xl
+        bg-white/80 dark:bg-gray-900/80
         border-b border-gray-200 dark:border-gray-700
         shadow-sm
+        text-gray-900 dark:text-gray-200
+        transition-colors duration-300
       "
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -61,7 +64,8 @@ const Navbar = () => {
               h-9 w-9 sm:h-10 sm:w-10
               rounded-full
               bg-blue-600 dark:bg-blue-500
-              text-white flex items-center justify-center
+              text-white dark:text-gray-50
+              flex items-center justify-center
               font-semibold cursor-pointer
               hover:scale-105 transition-all shadow
             "
@@ -77,8 +81,9 @@ const Navbar = () => {
               px-3 sm:px-4 py-2
               text-sm font-semibold
               rounded-lg
-              bg-red-600 text-white
-              hover:bg-red-700
+              bg-red-600 dark:bg-red-500
+              text-white dark:text-gray-100
+              hover:bg-red-700 dark:hover:bg-red-600
               transition shadow
               whitespace-nowrap
             "

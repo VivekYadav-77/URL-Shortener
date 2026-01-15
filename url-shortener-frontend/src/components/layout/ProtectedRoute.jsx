@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { useAppSelector } from "../App/hook";
+import { useAppSelector } from "../../App/hook";
 
 const ProtectedRoute = () => {
   const { isAuthenticated, authChecked,user } = useAppSelector(

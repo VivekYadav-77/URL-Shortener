@@ -14,6 +14,7 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = true;
       state.authChecked = true;
+      console.log("state",state)
     },
     clearUser: (state) => {
       state.user = null;
