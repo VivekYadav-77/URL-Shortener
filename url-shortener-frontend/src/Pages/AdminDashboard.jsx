@@ -11,8 +11,13 @@ import {
   CartesianGrid,
 } from "recharts";
 
+import { useTheme } from "../App/themeStore";
+
 const AdminDashboard = () => {
   const { data: stats, isLoading } = useGetAdminStatsQuery();
+
+  // ADD THEME — (You said it wasn't here, so adding now)
+  const { theme } = useTheme();
 
   if (isLoading) {
     return (
@@ -21,7 +26,7 @@ const AdminDashboard = () => {
           style={{
             backgroundColor: "var(--bg-card)",
             borderColor: "var(--border-main)",
-            color: "var(--text-body)"
+            color: "var(--text-body)",
           }}
           className="p-6 border rounded-xl text-center"
         >
@@ -40,8 +45,7 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-
-      {/* PAGE TITLE */}
+      {/* TITLE */}
       <h1
         style={{ color: "var(--text-header)" }}
         className="text-3xl font-bold mb-8"
@@ -51,12 +55,10 @@ const AdminDashboard = () => {
 
       {/* TOP STATS GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-
         <StatCard title="Total URLs" value={stats.totalUrls} color="blue" />
         <StatCard title="Active URLs" value={stats.activeUrls} color="green" />
         <StatCard title="Expired URLs" value={stats.expiredUrls} color="yellow" />
         <StatCard title="Deleted URLs" value={stats.deletedUrls} color="red" />
-
       </div>
 
       {/* CHART BLOCK */}
@@ -77,23 +79,33 @@ const AdminDashboard = () => {
         <div className="w-full h-72">
           <ResponsiveContainer>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#cccccc50" />
-
-              <XAxis
-                dataKey="name"
-                stroke="var(--text-muted)"
+              
+              {/* GRID */}
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke={theme === "light" ? "#e5e7eb" : "#374151"}
               />
 
-              <YAxis stroke="var(--text-muted)" />
+              {/* X AXIS */}
+              <XAxis
+                dataKey="name"
+                stroke={theme === "light" ? "#6b7280" : "#9ca3af"} 
+              />
 
+              {/* Y AXIS */}
+              <YAxis stroke={theme === "light" ? "#6b7280" : "#9ca3af"} />
+
+              {/* TOOLTIP */}
               <Tooltip
                 contentStyle={{
                   backgroundColor: "var(--bg-card)",
                   borderColor: "var(--border-main)",
                   color: "var(--text-header)",
+                  borderRadius: "8px",
                 }}
               />
 
+              {/* LINE */}
               <Line
                 type="monotone"
                 dataKey="value"
@@ -106,14 +118,11 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* BOTTOM ROW */}
+      {/* BOTTOM TWO CARDS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-
         <StatCard title="Total Clicks" value={stats.totalClicks} color="indigo" />
         <StatCard title="Abuse URLs" value={stats.abuseUrls} color="rose" />
-
       </div>
-
     </AdminLayout>
   );
 };
@@ -121,6 +130,8 @@ const AdminDashboard = () => {
 export default AdminDashboard;
 
 
+
+/* ----------------------------------- STAT CARD ----------------------------------- */
 
 const StatCard = ({ title, value, color }) => {
   const colors = {

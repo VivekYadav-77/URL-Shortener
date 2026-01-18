@@ -36,7 +36,7 @@ const AdminUserProfilePage = () => {
 
           <button
             onClick={() => navigate("/admin/users")}
-            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-semibold"
+            className={`px-4 py-2 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-sm font-semibold ${pageBg}`}
           >
             ← Back to Users
           </button>
@@ -60,7 +60,7 @@ const AdminUserProfilePage = () => {
                 <h3 className="text-2xl font-bold">{user?.name}</h3>
                 <p className={textMuted}>{user?.email}</p>
 
-                <p className="mt-2 inline-block px-3 py-1 text-xs font-semibold rounded-full bg-gray-200 dark:bg-gray-700">
+                <p className={`mt-2 inline-block px-3 py-1 text-xs font-semibold rounded-full ${pageBg}`}>
                   {user?.role?.toUpperCase()}
                 </p>
 

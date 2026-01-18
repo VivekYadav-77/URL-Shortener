@@ -58,7 +58,7 @@ const AdminUsersPage = () => {
             <input
               type="text"
               placeholder="Search by email..."
-              className={`ml-2 flex-1 bg-transparent outline-none ${inputText}`}
+              className={`ml-2 flex-1 bg-transparent outline-none  placeholder:text-gray-600`}
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -73,7 +73,7 @@ const AdminUsersPage = () => {
           >
             <Filter size={18} className={muted} />
             <select
-              className={`ml-2 bg-transparent outline-none ${inputText}`}
+              className={`ml-2 ${pageBg} outline-none ${inputText}`}
               value={roleFilter}
               onChange={(e) => {
                 setRoleFilter(e.target.value);

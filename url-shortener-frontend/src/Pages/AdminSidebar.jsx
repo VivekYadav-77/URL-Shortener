@@ -10,6 +10,8 @@ export const Sidebar = ({ onNavigate, isMobile }) => {
   const hoverBg = theme === "light" ? "hover:bg-gray-200" : "hover:bg-gray-700";
   const closeBtnBg = theme === "light" ? "bg-gray-200" : "bg-gray-700";
   const closeBtnHover = theme === "light" ? "hover:bg-gray-300" : "hover:bg-gray-600";
+  const bg = theme === "light" ? "bg-white text-black" : "bg-black text-white";
+  const border = theme === "light" ? "border-gray-300" : "border-gray-700";
 
   const linkClass = ({ isActive }) =>
     `
@@ -21,7 +23,11 @@ export const Sidebar = ({ onNavigate, isMobile }) => {
     `;
 
   return (
-    <div className="relative h-full">
+    <div className={`
+        relative h-full w-full p-4 rounded-r-2xl shadow-xl
+        border-r ${border}
+        ${bg}
+      `}>
 
       {/* HEADER ROW */}
       <div className="flex justify-between items-center w-full px-2 mb-2">
