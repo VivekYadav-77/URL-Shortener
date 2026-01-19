@@ -1,3 +1,4 @@
+import ApiError from "../utils/ApiError.js";
 import UrlCollection from "../models/url_model.js";
 import { validateUrl } from "../utils/validateUrls.js";
 import { validateAlias } from "../utils/validateAlias.js";
@@ -7,11 +8,11 @@ import redis from "../config/redish.js";
 export const createShortUrl = async (req, res) => {
   const { originalUrl, customAlias, expiresAt } = req.body;
   if (!originalUrl || !validateUrl(originalUrl)) {
-    return res.status(400).json({ message: "Invalid URL" });
+    return next(new ApiError(400, "Invalid URL"));
   }
   const safe = await isUrlSafe(originalUrl);
   if (!safe) {
-    return res.status(400).json({ message: "Malicious URL detected" });
+   return next(new ApiError(400, "Malicious URL detected"));
   }
 
   let shortCode;
@@ -19,12 +20,12 @@ export const createShortUrl = async (req, res) => {
   if (customAlias) {
     const alias = customAlias.trim().toLowerCase();
     if (!validateAlias(customAlias)) {
-      return res.status(400).json({ message: "Invalid alias" });
+      return next(new ApiError(400, "Invalid alias"));
     }
 
     const exists = await UrlCollection.exists({ shortCode: customAlias });
     if (exists) {
-      return res.status(409).json({ message: "Alias already taken" });
+     return next(new ApiError(409, "Alias already taken"));
     }
 
     shortCode = alias;
@@ -41,14 +42,10 @@ export const createShortUrl = async (req, res) => {
   if (expiresAt) {
     const requested = new Date(expiresAt).getTime();
     if (isNaN(requested) || requested <= now) {
-      return res.status(400).json({
-        message: "Expiry must be within 7 days",
-      });
+      return next(new ApiError(400, "Expiry must be within 7 days"))
     }
     if (requested - now > MAX_EXPIRY) {
-      return res.status(400).json({
-        message: "Expiry must be within 7 days",
-      });
+      return next(new ApiError(400, "Expiry must be within 7 days"))
     }
     expiresAtFinal = new Date(requested);
   } else {
@@ -92,9 +89,7 @@ export const deleteUrl = async (req, res, next) => {
     });
 
     if (!url) {
-      return res
-        .status(404)
-        .json({ message: "URL not found or not authorized" });
+      return next(new ApiError(404, "URL not found or not authorized"));
     }
 
     url.isActive = false;
@@ -120,7 +115,7 @@ export const getUrlStats = async (req, res, next) => {
     }).select("clicks createdAt expiresAt isActive");
 
     if (!url) {
-      return res.status(404).json({ message: "URL not found" });
+      return next(new ApiError(404, "URL not found"));
     }
 
     res.status(200).json(url);
@@ -139,12 +134,10 @@ export const updateUrl = async (req, res, next) => {
     });
 
     if (!url) {
-      return res.status(404).json({ message: "URL not found" });
+     return next(new ApiError(404, "URL not found"));
     }
     if (url.disabledByRole === "admin") {
-      return res.status(403).json({
-        message: "Action forbidden: This URL was disabled by an administrator.",
-      });
+     return next(new ApiError(403, "Action forbidden: This URL was disabled by an administrator."));
     }
 
     if (url.expiresAt && url.expiresAt < new Date()) {
@@ -153,9 +146,7 @@ export const updateUrl = async (req, res, next) => {
       url.disabledBy = req.userId;
       url.disabledByRole = "user";
       await url.save();
-      return res.status(400).json({
-        message: "This URL is expired and cannot be enabled again",
-      });
+     return next(new ApiError(400, "This URL is expired and cannot be enabled again"));
     }
 
     url.isActive = Boolean(isActive);
@@ -174,7 +165,7 @@ export const updateUrl = async (req, res, next) => {
 export const getUrlById = async (req, res, next) => {
   const { id } = req.params;
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ message: "Invalid URL ID" });
+    return next(new ApiError(400, "Invalid URL ID"));
   }
   try {
     const url = await UrlCollection.findOne({
@@ -183,7 +174,7 @@ export const getUrlById = async (req, res, next) => {
     });
 
     if (!url) {
-      return res.status(404).json({ message: "URL not found" });
+     return next(new ApiError(404, "URL not found"));
     }
 
     res.json(url);

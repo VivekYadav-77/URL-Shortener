@@ -1,3 +1,4 @@
+import ApiError from "../utils/ApiError.js";
 import UrlCollection from "../models/url_model.js";
 import UserCollection from "../models/user_model.js";
 import mongoose from "mongoose";
@@ -63,18 +64,18 @@ export const disableUrlByAdmin = async (req, res, next) => {
     const url = await UrlCollection.findById(req.params.id);
 
     if (!url) {
-      return res.status(404).json({ message: "URL not found" });
+      return next(new ApiError(404, "URL not found"));
     }
 
     if (url.status === "deleted") {
-      return res.status(400).json({ message: "URL already deleted" });
+      return next(new ApiError(400, "URL already deleted"));
     }
 
     if (url.expiresAt < new Date()) {
       url.status = "expired";
       url.isActive = false;
       await url.save();
-      return res.status(400).json({ message: "URL already expired" });
+      return next(new ApiError(400, "URL already expired"));
     }
 
     url.isActive = false;
@@ -97,10 +98,10 @@ export const adminEnableUrl = async (req, res, next) => {
     const now = new Date();
 
     if (!url) {
-      return res.status(404).json({ message: "URL not found" });
+       return next(new ApiError(404, "URL not found"));
     }
      if (url.status === "deleted") {
-      return res.status(400).json({ message: "URL already deleted could not be enabled" });
+     return next(new ApiError(400, "URL already deleted and cannot be enabled"));
     }
 
     let disabledAt = url.disabledAt;
@@ -139,11 +140,11 @@ export const deleteUrlByAdmin = async (req, res, next) => {
     const url = await UrlCollection.findById(req.params.id);
 
     if (!url) {
-      return res.status(404).json({ message: "URL not found" });
+      return next(new ApiError(404, "URL not found"));
     }
 
     if (url.status === "deleted") {
-      return res.status(400).json({ message: "URL already deleted" });
+      return next(new ApiError(400, "URL already deleted"));
     }
 
     url.isActive = false;
@@ -189,7 +190,7 @@ export const getAllUsers = async (req, res, next) => {
 export const getUserUrls = async (req, res, next) => {
   const {id} = req.params
   if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-  return res.status(400).json({ message: "Invalid user ID" });
+ return next(new ApiError(400, "Invalid user ID"));
 }
 
   try {
@@ -205,13 +206,13 @@ export const getSingleUserProfile = async (req, res, next) => {
   try {
     const { id } = req.params;
 if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-  return res.status(400).json({ message: "Invalid user ID" });
+ return next(new ApiError(400, "Invalid user ID"));
 }
 
     const user = await UserCollection.findById(id).select("-password");
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+     return next(new ApiError(404, "User not found"));
     }
 
     const urls = await UrlCollection.find({ owner: id }).sort({

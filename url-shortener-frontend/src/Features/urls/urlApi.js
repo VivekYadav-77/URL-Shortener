@@ -1,49 +1,69 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { baseQueryWithAuth } from "../baseQueryWithAuth";
 
 export const urlApi = createApi({
   reducerPath: "urlApi",
   baseQuery: baseQueryWithAuth,
-  tagTypes: ["Urls"],
+  tagTypes: ["Urls", "UrlStats", "History"],
+
   endpoints: (builder) => ({
+    
     getMyUrls: builder.query({
       query: () => "/urls/my",
-      providesTags: ["Urls"]
+      providesTags: ["Urls"],
+      keepUnusedDataFor: 240,
     }),
-getUrlStats: builder.query({
-  query: (id) => `/urls/${id}/stats`
-}),
+
+    getUrlStats: builder.query({
+      query: (id) => `/urls/${id}/stats`,
+      providesTags: (result, error, id) => [
+        { type: "UrlStats", id }
+      ],
+      keepUnusedDataFor: 300,
+    }),
+
     createUrl: builder.mutation({
       query: (data) => ({
         url: "/urls",
         method: "POST",
-        body: data
+        body: data,
       }),
-      invalidatesTags: ["Urls"]
+      invalidatesTags: ["Urls"],
     }),
 
     updateUrl: builder.mutation({
       query: ({ id, data }) => ({
         url: `/urls/${id}`,
         method: "PATCH",
-        body: data
+        body: data,
       }),
-      invalidatesTags: ["Urls"]
+
+      invalidatesTags: (result, error, { id }) => [
+        "Urls",
+        { type: "UrlStats", id }
+      ],
     }),
 
     deleteUrl: builder.mutation({
       query: (id) => ({
         url: `/urls/${id}`,
-        method: "DELETE"
+        method: "DELETE",
       }),
-      invalidatesTags: ["Urls"]
-    }),
-    getHistoryUrls: builder.query({
-  query: () => "/urls/history",
-  providesTags: ["Urls"]
-}),
 
-  })
+      // FIXED HERE
+      invalidatesTags: (result, error, id) => [
+        "Urls",
+        { type: "UrlStats", id }
+      ],
+    }),
+
+    getHistoryUrls: builder.query({
+      query: () => "/urls/history",
+      providesTags: ["History"],
+      keepUnusedDataFor: 600,
+    }),
+
+  }),
 });
 
 export const {

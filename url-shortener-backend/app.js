@@ -4,7 +4,7 @@ import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
 import hpp from "hpp";
-import errrorHandler from './middleware/error_middleware.js'
+import errorHandler from './middleware/error_middleware.js'
 import { redirect } from './controllers/redirectUrl_controller.js'
 import auth_router from './routes/auth_routes.js'
 import url_router from './routes/url_routes.js'
@@ -44,5 +44,5 @@ app.use("/api/urls",url_router)
 app.use("/api/users",user_routers)
 app.use('/api/admin',admin_router)
 app.get("/:shortCode",abuseGuard,redisRateLimit,redirect)
-app.use(errrorHandler)
+app.use(errorHandler)
 export default app

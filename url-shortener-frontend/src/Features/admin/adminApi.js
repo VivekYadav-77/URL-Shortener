@@ -4,31 +4,46 @@ import { baseQueryWithAuth } from "../baseQueryWithAuth";
 export const adminApi = createApi({
   reducerPath: "adminApi",
   baseQuery: baseQueryWithAuth,
+  tagTypes: ["AdminUrls", "Users", "UserProfile", "UserUrls", "Abuse"],
+
   endpoints: (builder) => ({
+
     getAdminStats: builder.query({
       query: () => "/admin/stats",
+      keepUnusedDataFor: 600,
     }),
+
     getUsers: builder.query({
       query: () => "/admin/users",
+      providesTags: ["Users"],
+      keepUnusedDataFor: 300,
     }),
 
     getUserProfile: builder.query({
       query: (userId) => `/admin/users/${userId}`,
+      providesTags: (r, e, id) => [{ type: "UserProfile", id }],
+      keepUnusedDataFor: 300,
     }),
 
     getUserUrls: builder.query({
       query: (userId) => `/admin/users/${userId}/urls`,
+      providesTags: (r, e, id) => [{ type: "UserUrls", id }],
+      keepUnusedDataFor: 300,
     }),
+
     getAllAdminUrls: builder.query({
       query: (params) => ({
         url: "/admin/urls",
         params,
       }),
       providesTags: ["AdminUrls"],
+      keepUnusedDataFor: 240,
     }),
 
     getAbuseUrls: builder.query({
-      query: () => "/admin/abuse",
+      query: () => `/admin/abuse`,
+      providesTags: ["Abuse"],
+      keepUnusedDataFor: 120,
     }),
 
     adminEnableUrl: builder.mutation({
@@ -36,7 +51,7 @@ export const adminApi = createApi({
         url: `/admin/url/${id}/enable`,
         method: "PATCH",
       }),
-      invalidatesTags: ["AdminUrls"],
+      invalidatesTags: ["AdminUrls", "Abuse"]
     }),
 
     adminDisableUrl: builder.mutation({
@@ -44,7 +59,7 @@ export const adminApi = createApi({
         url: `/admin/url/${id}/disable`,
         method: "PATCH",
       }),
-      invalidatesTags: ["AdminUrls"],
+      invalidatesTags: ["AdminUrls", "Abuse"]
     }),
 
     adminDeleteUrl: builder.mutation({
@@ -52,10 +67,11 @@ export const adminApi = createApi({
         url: `/admin/url/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["AdminUrls"],
+      invalidatesTags: ["AdminUrls", "Abuse"]
     }),
   }),
 });
+
 
 export const {
   useGetUsersQuery,

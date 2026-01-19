@@ -1,3 +1,4 @@
+import ApiError from "../utils/ApiError.js";
 import jwt from "jsonwebtoken";
 import UserCollection from "../models/user_model.js";
 import RefreshTokenCollection from "../models/statefull_model.js";
@@ -11,13 +12,13 @@ export const register = async (req, res) => {
   console.log(req.body)
   const { name, email, password } = req.body;
   if (!name || !email || !password) {
-    return res.status(400).json({ message: "All fields required" });
+    return next(new ApiError(400, "All fields required"));
   }
   const existingUser = await UserCollection.findOne({
     $or: [{ email }, { name }],
   });
   if (existingUser) {
-    return res.status(409).json({ message: "User already exist" });
+    return next(new ApiError(409, "User already exist"));
   }
   await UserCollection.create({ name, email, password });
   res.status(201).json({ message: "User registered successfully" });
@@ -26,11 +27,11 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
   const { email, password } = req.body;
   if (!email.endsWith("@gmail.com")) {
-    return res.status(400).json({ message: "Only Gmail accounts are allowed" });
+   return next(new ApiError(400, "Only Gmail accounts are allowed"));
   }
   const user = await UserCollection.findOne({ email }).select("+password");
   if (!user || !(await user.comparePassword(password))) {
-    return res.status(401).json({ message: "Invalid credentials" });
+    return next(new ApiError(401, "Invalid credentials"));
   }
   const accessToken = generateAccessToken(user._id);
   const tokenId = generateTokenID();
@@ -64,27 +65,23 @@ export const login = async (req, res) => {
       role: user.role,
     },
   });
-  console.log("login",user)
 };
 //Refresh
 export const refresh = async (req, res) => {
   const token = req.cookies.refreshToken;
   console.log("token",token )
   if (!token) {
-    console.log("hee")
-    return res.status(401).json({ message: "No refresh token" });
-  }
+    return next(new ApiError(401, "No refresh token"))  }
   let payload;
   try {
     payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
     console.log("payload",payload)
   } catch {
-    return res.status(401).json({ message: "Invalid refresh token" });
+    return next(new ApiError(401, "Invalid refresh token"));
   }
   const storedToken = await RefreshTokenCollection.findOne({ tokenId: payload.jti });
-  console.log("storedToken",storedToken)
     if (!storedToken || storedToken.revoked || storedToken.expiresAt < Date.now()) {
-    return res.status(401).json({ message: "Refresh token revoked" });
+    return next(new ApiError(401, "Refresh token revoked"));
   }
   storedToken.revoked = true;
   const newTokenId = generateTokenID();
@@ -98,7 +95,6 @@ export const refresh = async (req, res) => {
     ip: req.ip,
     userAgent: req.headers["user-agent"]
   });
-  console.log("refreshtoken",newRefreshToken)
    const newAccessToken = generateAccessToken(payload.id);
   res.cookie("accessToken", newAccessToken, {
     httpOnly: true,

@@ -3,14 +3,33 @@ import { baseQueryWithAuth } from "../baseQueryWithAuth";
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAuth,
+  tagTypes: ["User"],
+  
   endpoints: (builder) => ({
+
+    getMe: builder.query({
+      query: () => "/users/me",
+      providesTags: ["User"],
+      keepUnusedDataFor: 300,
+    }),
+
     login: builder.mutation({
       query: (credentials) => ({
         url: "/auth/login",
         method: "POST",
         body: credentials,
       }),
+      invalidatesTags: ["User"]
     }),
+
+    logout: builder.mutation({
+      query: () => ({
+        url: "/auth/logout",
+        method: "POST",
+      }),
+      invalidatesTags: ["User"]
+    }),
+
     register: builder.mutation({
       query: (data) => ({
         url: "/auth/register",
@@ -18,22 +37,14 @@ export const authApi = createApi({
         body: data,
       }),
     }),
-    getMe: builder.query({
-      query: () => "/users/me",
-      providesTags: ["User"],
-    }),
-    logout: builder.mutation({
-      query: () => ({
-        url: "/auth/logout",
-        method: "POST",
-      }),
-    }),
+
     updateMe: builder.mutation({
       query: (data) => ({
         url: "/users/me",
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: ["User"]
     }),
 
     changePassword: builder.mutation({
@@ -42,9 +53,12 @@ export const authApi = createApi({
         method: "PATCH",
         body: data,
       }),
+      invalidatesTags: ["User"]
     }),
+
   }),
 });
+
 
 export const {
   useLoginMutation,

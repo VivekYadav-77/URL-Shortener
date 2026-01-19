@@ -1,6 +1,6 @@
 import UrlCollection from "../models/url_model.js";
 import redis from "../config/redish.js";
-
+import ApiError from "../utils/ApiError.js";
 export const redirect = async (req, res, next) => {
   try {
     const { shortCode } = req.params;
@@ -19,7 +19,7 @@ export const redirect = async (req, res, next) => {
         (url.expiresAt && new Date(url.expiresAt) < new Date())
       ) {
         await redis.del(cacheKey);
-        return res.status(410).json({ message: "Link expired or inactive" });
+        return next(new ApiError(410, "Link expired or inactive"));
       }
     } else {
       const dbUrl = await UrlCollection.findOne({ shortCode });
@@ -29,7 +29,7 @@ export const redirect = async (req, res, next) => {
         dbUrl.status === "deleted" ||
         (dbUrl.expiresAt && dbUrl.expiresAt < Date.now())
       ) {
-        return res.status(410).json({ message: "Link expired or inactive" });
+        return next(new ApiError(410, "Link expired or inactive"));
       }
 
       url = {
@@ -48,7 +48,7 @@ export const redirect = async (req, res, next) => {
 
     if (abuseCount > 100) {
       await redis.hIncrBy(statsKey, "abuse", 1);
-      return res.status(403).json({ message: "Too many requests" });
+      return next(new ApiError(403, "Too many requests"));
     }
 
     await redis.hIncrBy(statsKey, "clicks", 1);

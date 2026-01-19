@@ -10,7 +10,8 @@ export const isUrlSafe = async (url) => {
       clientVersion: "1.0"
     },
     threatInfo: {
-      threatTypes: ["MALWARE", "SOCIAL_ENGINEERING"],
+      threatTypes: ["MALWARE", "SOCIAL_ENGINEERING","UNWANTED_SOFTWARE",
+  "POTENTIALLY_HARMFUL_APPLICATION"],
       platformTypes: ["ANY_PLATFORM"],
       threatEntryTypes: ["URL"],
       threatEntries: [{ url }]
