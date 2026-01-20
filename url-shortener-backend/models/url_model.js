@@ -57,12 +57,12 @@ const urlSchema = new mongoose.Schema(
     },
     disabledByRole: {
       type: String,
-      enum: ["user", "admin",null],
+      enum: ["user", "admin", null],
       default: null,
     },
     deletedByRole: {
       type: String,
-      enum: ["user", "admin",null],
+      enum: ["user", "admin", null],
       default: null,
     },
     abuseScore: {
@@ -73,8 +73,17 @@ const urlSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    scanCache: {
+      safe: { type: Boolean, default: null },
+      checkedAt: { type: Date, default: null },
+      source: {
+        type: String,
+        enum: ["safe_browsing", "virustotal", null],
+        default: null,
+      },
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 const UrlCollection = mongoose.model("Url", urlSchema);
 export default UrlCollection;

@@ -3,18 +3,87 @@ import UrlCollection from "../models/url_model.js";
 import { validateUrl } from "../utils/validateUrls.js";
 import { validateAlias } from "../utils/validateAlias.js";
 import { generateShortCode } from "../utils/generateShortCode.js";
-import { isUrlSafe } from "../utils/googlesafecheck.js";
+import { checkUrlSecurity } from "../utils/secureScanner.js";
+import { analyzeUrlRisk } from "../utils/urlRiskAnalyzer.js";
 import redis from "../config/redish.js";
 export const createShortUrl = async (req, res) => {
   const { originalUrl, customAlias, expiresAt } = req.body;
   if (!originalUrl || !validateUrl(originalUrl)) {
     return next(new ApiError(400, "Invalid URL"));
   }
-  const safe = await isUrlSafe(originalUrl);
-  if (!safe) {
-   return next(new ApiError(400, "Malicious URL detected"));
+
+  const adminAction = await UrlCollection.findOne({
+    originalUrl,
+    $or: [{ deletedByRole: "admin" }, { disabledByRole: "admin" }],
+  });
+
+  if (adminAction) {
+    return next(
+      new ApiError(
+        403,
+        "This URL was previously flagged by an administrator. You cannot shorten it again.",
+      ),
+    );
   }
 
+  const riskScore = analyzeUrlRisk(originalUrl);
+
+  if (riskScore >= 100) {
+    return next(new ApiError(400, "Critical malicious URL detected."));
+  }
+
+  if (riskScore >= 60) {
+    return next(new ApiError(400, "High-risk URL blocked."));
+  }
+
+  const isSuspicious = riskScore >= 30;
+
+  const SCAN_CACHE_TTL = 30 * 24 * 60 * 60 * 1000;
+
+  const existingRecord = await UrlCollection.findOne({
+    originalUrl,
+    "scanCache.safe": { $ne: null },
+  }).lean();
+
+  let scanResult;
+
+  const cacheValid =
+    existingRecord &&
+    existingRecord.scanCache.checkedAt &&
+    Date.now() - new Date(existingRecord.scanCache.checkedAt).getTime() <
+      SCAN_CACHE_TTL;
+
+  if (cacheValid) {
+    scanResult = { safe: existingRecord.scanCache.safe, fromCache: true };
+  } else {
+    scanResult = await checkUrlSecurity(originalUrl);
+
+    if (scanResult.rateLimited) {
+      return next(
+        new ApiError(
+          503,
+          "Security scanning rate limit reached. Please try again shortly.",
+        ),
+      );
+    }
+
+    if (!scanResult.safe) {
+      return next(new ApiError(400, "Unsafe or malicious URL detected."));
+    }
+  }
+
+  await UrlCollection.updateMany(
+    { originalUrl },
+    {
+      $set: {
+        scanCache: {
+          safe: scanResult.safe,
+          checkedAt: new Date(),
+          source: scanResult.source || "safe_browsing",
+        },
+      },
+    },
+  );
   let shortCode;
   let isCustom = false;
   if (customAlias) {
@@ -25,7 +94,7 @@ export const createShortUrl = async (req, res) => {
 
     const exists = await UrlCollection.exists({ shortCode: customAlias });
     if (exists) {
-     return next(new ApiError(409, "Alias already taken"));
+      return next(new ApiError(409, "Alias already taken"));
     }
 
     shortCode = alias;
@@ -42,10 +111,10 @@ export const createShortUrl = async (req, res) => {
   if (expiresAt) {
     const requested = new Date(expiresAt).getTime();
     if (isNaN(requested) || requested <= now) {
-      return next(new ApiError(400, "Expiry must be within 7 days"))
+      return next(new ApiError(400, "Expiry must be within 7 days"));
     }
     if (requested - now > MAX_EXPIRY) {
-      return next(new ApiError(400, "Expiry must be within 7 days"))
+      return next(new ApiError(400, "Expiry must be within 7 days"));
     }
     expiresAtFinal = new Date(requested);
   } else {
@@ -134,10 +203,15 @@ export const updateUrl = async (req, res, next) => {
     });
 
     if (!url) {
-     return next(new ApiError(404, "URL not found"));
+      return next(new ApiError(404, "URL not found"));
     }
     if (url.disabledByRole === "admin") {
-     return next(new ApiError(403, "Action forbidden: This URL was disabled by an administrator."));
+      return next(
+        new ApiError(
+          403,
+          "Action forbidden: This URL was disabled by an administrator.",
+        ),
+      );
     }
 
     if (url.expiresAt && url.expiresAt < new Date()) {
@@ -146,7 +220,9 @@ export const updateUrl = async (req, res, next) => {
       url.disabledBy = req.userId;
       url.disabledByRole = "user";
       await url.save();
-     return next(new ApiError(400, "This URL is expired and cannot be enabled again"));
+      return next(
+        new ApiError(400, "This URL is expired and cannot be enabled again"),
+      );
     }
 
     url.isActive = Boolean(isActive);
@@ -174,7 +250,7 @@ export const getUrlById = async (req, res, next) => {
     });
 
     if (!url) {
-     return next(new ApiError(404, "URL not found"));
+      return next(new ApiError(404, "URL not found"));
     }
 
     res.json(url);

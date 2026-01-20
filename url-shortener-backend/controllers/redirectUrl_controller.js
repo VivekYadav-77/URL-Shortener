@@ -12,7 +12,6 @@ export const redirect = async (req, res, next) => {
 
     if (cached) {
       url = JSON.parse(cached);
-
       if (
         !url.isActive ||
         url.status === "deleted" ||

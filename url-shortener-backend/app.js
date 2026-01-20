@@ -7,6 +7,7 @@ import hpp from "hpp";
 import errorHandler from './middleware/error_middleware.js'
 import { redirect } from './controllers/redirectUrl_controller.js'
 import auth_router from './routes/auth_routes.js'
+import { trafficAnomalyGuard } from './middleware/trafficAnomalyGuard.js'
 import url_router from './routes/url_routes.js'
 import { redisRateLimit } from './middleware/redisRateLimiting.js'
 import { abuseGuard } from './middleware/abuse_middleware.js'
@@ -43,6 +44,6 @@ app.use("/api/auth",auth_router)
 app.use("/api/urls",url_router)
 app.use("/api/users",user_routers)
 app.use('/api/admin',admin_router)
-app.get("/:shortCode",abuseGuard,redisRateLimit,redirect)
+app.get("/:shortCode",abuseGuard,redisRateLimit("rl", 50, 60),trafficAnomalyGuard,redirect)
 app.use(errorHandler)
 export default app
