@@ -17,6 +17,7 @@ import AdminUsersPage from "./Pages/AdminUsersPage";
 import AdminUserProfile from "./Pages/AdminUserProfile";
 import AdminUrls from "./Pages/AdminUrl";
 import AdminAbuseUrls from "./Pages/AdminAbuseUrl";
+import AdminSecurityLogsPage from "./Pages/AdminSecurityLogsPage";
 function App() {
   const dispatch = useAppDispatch();
 
@@ -55,6 +56,7 @@ function App() {
           <Route path="/admin/users/:id" element={<AdminUserProfile />} />
           <Route path="/admin/urls" element={<AdminUrls />} />
           <Route path="/admin/abuse" element={<AdminAbuseUrls />} />
+          <Route path="/admin/logs" element={<AdminSecurityLogsPage/>} />
         </Route>
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>

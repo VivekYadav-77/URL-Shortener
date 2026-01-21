@@ -65,6 +65,9 @@ export const Sidebar = ({ onNavigate, isMobile }) => {
       <NavLink to="/admin/abuse" className={linkClass} onClick={onNavigate}>
         Abuse URLs
       </NavLink>
+       <NavLink to="/admin/logs" className={linkClass} onClick={onNavigate}>
+        Logs
+      </NavLink>
     </div>
   );
 };

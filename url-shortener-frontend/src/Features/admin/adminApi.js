@@ -69,6 +69,25 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ["AdminUrls", "Abuse"]
     }),
+    getSecurityLogs: builder.query({
+      query: () => "/admin/logs",
+      providesTags: ["SecurityLogs"],
+      keepUnusedDataFor: 300,
+    }),
+
+    getHighRiskLogs: builder.query({
+      query: () => "/admin/high-risk",
+      providesTags: ["HighRiskLogs"],
+      keepUnusedDataFor: 300,
+    }),
+
+    deleteSecurityLogs: builder.mutation({
+      query: () => ({
+        url: "/admin/deleteLogs",
+        method: "DELETE",
+      }),
+      invalidatesTags: ["SecurityLogs", "HighRiskLogs"],
+    }),
   }),
 });
 
@@ -83,4 +102,7 @@ export const {
   useAdminEnableUrlMutation,
   useAdminDisableUrlMutation,
   useAdminDeleteUrlMutation,
+  useGetSecurityLogsQuery,
+  useGetHighRiskLogsQuery,
+  useDeleteSecurityLogsMutation
 } = adminApi;
