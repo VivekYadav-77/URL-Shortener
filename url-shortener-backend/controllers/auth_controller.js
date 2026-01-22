@@ -69,13 +69,11 @@ export const login = async (req, res) => {
 //Refresh
 export const refresh = async (req, res) => {
   const token = req.cookies.refreshToken;
-  console.log("token",token )
   if (!token) {
     return next(new ApiError(401, "No refresh token"))  }
   let payload;
   try {
     payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
-    console.log("payload",payload)
   } catch {
     return next(new ApiError(401, "Invalid refresh token"));
   }

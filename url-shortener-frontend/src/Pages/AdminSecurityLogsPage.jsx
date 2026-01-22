@@ -24,8 +24,8 @@ export default function AdminSecurityLogsPage() {
   const [deleteLogs, { isLoading: deleting }] = useDeleteSecurityLogsMutation();
 
   const logs = filterType === "all" ? allLogs : highRiskLogs;
+  console.log("logs",allLogs)
   const isLoading = filterType === "all" ? loadingAll : loadingHigh;
-
   const filteredLogs = useMemo(() => {
     return logs.filter((log) =>
       log.originalUrl.toLowerCase().includes(search.toLowerCase()) ||
@@ -39,6 +39,8 @@ export default function AdminSecurityLogsPage() {
     (page - 1) * ITEMS_PER_PAGE,
     page * ITEMS_PER_PAGE
   );
+  console.log("paginated",paginated)
+
 
   const handleDeleteLogs = async () => {
     if (confirm("This will permanently delete all security logs. Proceed?")) {
@@ -158,7 +160,7 @@ export default function AdminSecurityLogsPage() {
                 >
                   <td className="p-3 capitalize">{log.type.replace(/_/g, " ")}</td>
                   <td className="p-3 break-all">{log.originalUrl}</td>
-                  <td className="p-3">{log.shortCode || "—"}</td>
+                  <td className="p-3">{log.shortCode?.shortCode|| "—"}</td>
                   <td className="p-3">{log.metadata?.scannerUsed || "—"}</td>
                   <td className="p-3">{log.metadata?.riskScore ?? "—"}</td>
                   <td className="p-3">{log.metadata?.ip || "—"}</td>

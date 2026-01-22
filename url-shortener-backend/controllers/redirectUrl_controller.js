@@ -1,17 +1,20 @@
 import UrlCollection from "../models/url_model.js";
 import redis from "../config/redish.js";
 import ApiError from "../utils/ApiError.js";
+
 export const redirect = async (req, res, next) => {
   try {
     const { shortCode } = req.params;
     const cacheKey = `url:${shortCode}`;
     const statsKey = `stats:${shortCode}`;
 
+
     const cached = await redis.get(cacheKey);
     let url;
 
     if (cached) {
-      url = JSON.parse(cached);
+      url = cached; 
+
       if (
         !url.isActive ||
         url.status === "deleted" ||
@@ -22,6 +25,7 @@ export const redirect = async (req, res, next) => {
       }
     } else {
       const dbUrl = await UrlCollection.findOne({ shortCode });
+
       if (
         !dbUrl ||
         !dbUrl.isActive ||
@@ -35,10 +39,10 @@ export const redirect = async (req, res, next) => {
         originalUrl: dbUrl.originalUrl,
         isActive: dbUrl.isActive,
         status: dbUrl.status,
-        expiresAt: dbUrl.expiresAt
+        expiresAt: dbUrl.expiresAt,
       };
 
-      await redis.set(cacheKey, JSON.stringify(url), { ex: 300 });
+      await redis.set(cacheKey, url, { ex: 300 });
     }
 
     const abuseKey = `abuse:${shortCode}:${req.ip}`;
@@ -46,13 +50,17 @@ export const redirect = async (req, res, next) => {
     if (abuseCount === 1) await redis.expire(abuseKey, 600);
 
     if (abuseCount > 100) {
-      await redis.hIncrBy(statsKey, "abuse", 1);
+      const abuse = Number(await redis.hget(statsKey, "abuse")) || 0;
+      await redis.hset(statsKey, { abuse: abuse + 1 });
+
       return next(new ApiError(403, "Too many requests"));
     }
 
-    await redis.hIncrBy(statsKey, "clicks", 1);
+    const clicks = Number(await redis.hget(statsKey, "clicks")) || 0;
+    await redis.hset(statsKey, { clicks: clicks + 1 });
 
     return res.redirect(url.originalUrl);
+
   } catch (err) {
     next(err);
   }

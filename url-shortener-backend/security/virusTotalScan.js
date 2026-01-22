@@ -1,5 +1,4 @@
 import axios from "axios";
-
 export const scanWithVirusTotal = async (url) => {
   try {
     const response = await axios.post(

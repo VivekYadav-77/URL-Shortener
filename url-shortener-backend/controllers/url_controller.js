@@ -110,7 +110,7 @@ export const createShortUrl = async (req, res, next) => {
           ip: req.ip,
         },
       });
-
+console.log("vieurs",scanResult.safe)
       if (!scanResult.safe) {
         return next(new ApiError(400, "Unsafe or malicious URL detected."));
       }
