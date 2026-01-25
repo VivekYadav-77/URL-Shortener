@@ -2,22 +2,36 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRegisterMutation } from "../Features/auth/authapi";
 import { useAppSelector } from "../App/hook";
-import ThemeToggle from "../components/ui/ThemeToggle";
 import { useTheme } from "../App/themeStore";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Lock, 
+  Mail, 
+  User as UserIcon, 
+  Eye, 
+  EyeOff, 
+  AlertCircle, 
+  UserPlus,
+  Zap,
+  Sparkles
+} from "lucide-react";
+import ThemeToggle from "../components/ui/ThemeToggle";
+import LogoIcon from "../components/ui/Logo";
 
 const Register = () => {
   const { theme } = useTheme();
+  const isDark = theme === "dark";
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setUsername] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [formError, setFormError] = useState("");
+  const [isSynthesized, setIsSynthesized] = useState(false);
 
   const { isAuthenticated } = useAppSelector((state) => state.auth);
-
-  const [register, { isLoading, isSuccess, isError, error }] =
-    useRegisterMutation();
+  const [register, { isLoading, isSuccess, isError, error }] = useRegisterMutation();
 
   useEffect(() => {
     if (isSuccess) navigate("/login");
@@ -27,176 +41,203 @@ const Register = () => {
     if (isAuthenticated) navigate("/", { replace: true });
   }, [isAuthenticated, navigate]);
 
-  const pageBg = theme === "light" ? "bg-white text-black" : "bg-black text-white";
-  const cardBg = theme === "light" ? "bg-white" : "bg-gray-900";
-  const border = theme === "light" ? "border-gray-300" : "border-gray-700";
-  const softText = theme === "light" ? "text-gray-600" : "text-gray-400";
-  const strongText = theme === "light" ? "text-black" : "text-white";
-  const inputBg = theme === "light" ? "bg-gray-100" : "bg-gray-800";
-
   const handleSubmit = (e) => {
     e.preventDefault();
     setFormError("");
 
-    if (name.length < 3) {
-      setFormError("Username must be at least 3 characters long");
-      return;
-    }
-    if (password.length < 8) {
-      setFormError("Password must be at least 8 characters long");
-      return;
-    }
+    if (name.length < 3) return setFormError("Username must be at least 3 characters");
+    if (password.length < 8) return setFormError("Security requirement: 8+ characters");
 
     register({ email, password, name });
   };
 
   return (
-    <div className={`min-h-screen flex flex-col justify-center items-center px-4 relative ${pageBg} transition-colors`}>
-
+    <div className={`min-h-screen flex items-center justify-center px-4 overflow-hidden relative transition-colors duration-700 ${
+      isDark ? "bg-[#030303]" : "bg-slate-50"
+    }`}>
+      
       {/* THEME TOGGLE */}
-      <div className="absolute top-6 right-6">
+      <div className="absolute top-6 right-6 z-50">
         <ThemeToggle />
       </div>
 
-      {/* ICON + HEADING */}
-      <div className="text-center mb-8">
+      <div className="relative w-full max-w-md flex flex-col items-center">
+        
+        {/* SYNTHESIS ANIMATION (Data Expanding into Logo) */}
+        <div className="relative h-40 w-full flex items-center justify-center mb-4">
+          <AnimatePresence>
+            {!isSynthesized && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                {[...Array(6)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute h-1 w-1 bg-blue-500 rounded-full"
+                    initial={{ x: 0, y: 0, opacity: 0 }}
+                    animate={{ 
+                      x: (i % 2 === 0 ? 1 : -1) * (Math.random() * 150), 
+                      y: (i % 3 === 0 ? 1 : -1) * (Math.random() * 100),
+                      opacity: [0, 1, 0] 
+                    }}
+                    transition={{ duration: 2, repeat: Infinity, delay: i * 0.2 }}
+                  />
+                ))}
+                <motion.div
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: [0, 1.2, 1], opacity: 1 }}
+                  transition={{ duration: 1.5, ease: "easeOut" }}
+                  onAnimationComplete={() => setIsSynthesized(true)}
+                  className="text-blue-500"
+                >
+                  <UserPlus size={40} strokeWidth={1} />
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
 
-        {/* ICON BOX */}
-        <div
-          className="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center bg-blue-600/10 border border-blue-400/30 shadow-lg"
-        >
-          <svg
-            viewBox="-2.4 -2.4 28.80 28.80"
-            className="w-12 h-12 mx-auto"
-            xmlns="http://www.w3.org/2000/svg"
+          <motion.div
+            initial={{ scale: 0, rotate: 180 }}
+            animate={isSynthesized ? { scale: 1, rotate: 0 } : { scale: 0 }}
+            transition={{ type: "spring", damping: 15, stiffness: 100 }}
+            className={`relative z-20 w-24 h-24 rounded-[2rem] flex items-center justify-center border-4 shadow-2xl transition-all ${
+              isDark ? "bg-blue-600 border-white/10 shadow-blue-900/40" : "bg-blue-600 border-white shadow-blue-200"
+            }`}
           >
-            <path
-              d="M4.5,19.5h0a3.54,3.54,0,0,1,0-5L7,12a3.54,3.54,0,0,1,5,0h0a3.54,3.54,0,0,1,0,5L9.5,19.5A3.54,3.54,0,0,1,4.5,19.5Zm13-8L20,9a3.54,3.54,0,0,0,0-5h0a3.54,3.54,0,0,0-5,0L12.5,6.5a3.54,3.54,0,0,0,0,5h0A3.54,3.54,0,0,0,17.5,11.5Z"
-              stroke="#1e293b"
-              strokeWidth="2"
-              fill="none"
-              strokeLinecap="round"
+            <LogoIcon className="text-white w-12 h-12" />
+            <motion.div 
+              animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0, 0.3] }}
+              transition={{ duration: 3, repeat: Infinity }}
+              className="absolute inset-0 rounded-[2rem] border-2 border-blue-300/50 pointer-events-none" 
             />
-            <line
-              x1="10"
-              y1="14"
-              x2="14"
-              y2="10"
-              stroke="#2563eb"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
+          </motion.div>
         </div>
 
-        <h1 className={`text-3xl font-extrabold mt-4 ${strongText}`}>
-          Create Account
-        </h1>
-
-        <p className={`${softText} text-sm`}>
-          Join Shorty and start creating powerful links
-        </p>
-      </div>
-
-      {/* FORM CARD */}
-      <form
-        onSubmit={handleSubmit}
-        className={`
-          w-full max-w-md rounded-2xl p-6 sm:p-8 shadow-xl backdrop-blur-xl
-          border ${border} ${cardBg} space-y-5 transition-colors
-        `}
-      >
-        {formError && (
-          <p className="text-red-500 text-sm font-medium">{formError}</p>
-        )}
-
-        {/* USERNAME */}
-        <div>
-          <label className={`text-sm font-semibold block mb-1 ${strongText}`}>
-            Username
-          </label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setUsername(e.target.value)}
-            className={`
-              w-full px-4 py-2.5 rounded-lg border ${border}
-              ${inputBg} ${strongText} outline-none
-              focus:ring-2 focus:ring-blue-500
-            `}
-            required
-          />
-        </div>
-
-        {/* EMAIL */}
-        <div>
-          <label className={`text-sm font-semibold block mb-1 ${strongText}`}>
-            Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`
-              w-full px-4 py-2.5 rounded-lg border ${border}
-              ${inputBg} ${strongText} outline-none
-              focus:ring-2 focus:ring-blue-500
-            `}
-            required
-          />
-        </div>
-
-        {/* PASSWORD */}
-        <div>
-          <label className={`text-sm font-semibold block mb-1 ${strongText}`}>
-            Password
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={`
-              w-full px-4 py-2.5 rounded-lg border ${border}
-              ${inputBg} ${strongText} outline-none
-              focus:ring-2 focus:ring-blue-500
-            `}
-            required
-          />
-          <p className={`text-xs mt-1 ${softText}`}>
-            Must be at least 8 characters
-          </p>
-        </div>
-
-        {/* BACKEND ERROR */}
-        {isError && (
-          <p className="text-red-500 text-sm">
-            {error?.data?.message || "Registration failed"}
-          </p>
-        )}
-
-        {/* REGISTER BUTTON */}
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="
-            w-full py-3 rounded-lg bg-blue-600 hover:bg-blue-700
-            text-white font-semibold shadow-md active:scale-95 transition
-          "
+        {/* HEADER */}
+        <motion.div 
+          className="text-center mb-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isSynthesized ? { opacity: 1, y: 0 } : {}}
         >
-          {isLoading ? "Creating..." : "Register"}
-        </button>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-500 text-[10px] font-black uppercase tracking-widest mb-4">
+            <Sparkles size={12} /> Account Synthesis
+          </div>
+          <h1 className={`text-5xl font-black tracking-tighter ${isDark ? "text-white" : "text-slate-900"}`}>
+            Join <span className="text-blue-600">Shortly.</span>
+          </h1>
+        </motion.div>
 
-        {/* LOGIN LINK */}
-        <p className={`text-center text-sm ${softText}`}>
-          Already have an account?{" "}
-          <span
+        {/* REGISTER FORM CARD */}
+        <AnimatePresence>
+          {isSynthesized && (
+            <motion.form
+              onSubmit={handleSubmit}
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className={`w-full rounded-[3rem] p-8 sm:p-10 border shadow-2xl space-y-6 backdrop-blur-xl ${
+                isDark ? "bg-white/[0.02] border-white/10 shadow-black" : "bg-white border-slate-200 shadow-slate-200/50"
+              }`}
+            >
+              <div className="space-y-4">
+                {/* USERNAME */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-2 px-1">
+                    <UserIcon size={14} /> Username
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="ShortyExplorer"
+                    value={name}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className={`w-full px-6 py-4 rounded-2xl border font-bold text-sm outline-none transition-all ${
+                      isDark ? "bg-black/40 border-white/10 text-white focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-500"
+                    }`}
+                  />
+                </div>
+
+                {/* EMAIL */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-2 px-1">
+                    <Mail size={14} /> Email Portal
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="your@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`w-full px-6 py-4 rounded-2xl border font-bold text-sm outline-none transition-all ${
+                      isDark ? "bg-black/40 border-white/10 text-white focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-500"
+                    }`}
+                  />
+                </div>
+
+                {/* PASSWORD + EYE TOGGLE */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-blue-500 flex items-center gap-2 px-1">
+                    <Lock size={14} /> Secret Key
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      placeholder="8+ characters"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className={`w-full px-6 py-4 pr-14 rounded-2xl border font-bold text-sm outline-none transition-all ${
+                        isDark ? "bg-black/40 border-white/10 text-white focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-500"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${
+                        isDark ? "text-slate-600 hover:text-white" : "text-slate-400 hover:text-slate-900"
+                      }`}
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* ERROR STATES */}
+              {(formError || isError) && (
+                <motion.div initial={{ x: -10 }} animate={{ x: 0 }} className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold">
+                  <AlertCircle size={16} /> {formError || error?.data?.message || "Synthesis Failed"}
+                </motion.div>
+              )}
+
+              {/* REGISTER BUTTON */}
+              <button
+                type="submit"
+                disabled={isLoading}
+                className={`group w-full py-5 rounded-2xl font-black text-xs uppercase tracking-[0.4em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-xl ${
+                  isDark ? "bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/30" : "bg-slate-900 hover:bg-slate-800 text-white shadow-slate-900/20"
+                }`}
+              >
+                {isLoading ? (
+                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>Synthesize <Zap size={16} className="fill-current" /></>
+                )}
+              </button>
+            </motion.form>
+          )}
+        </AnimatePresence>
+
+        {/* LOGIN FOOTER */}
+        <motion.div className="mt-10" initial={{ opacity: 0 }} animate={isSynthesized ? { opacity: 1 } : {}}>
+          <button
             onClick={() => navigate("/login")}
-            className="text-blue-600 cursor-pointer"
+            className={`text-xs font-black uppercase tracking-widest transition-all hover:tracking-[0.2em] ${
+              isDark ? "text-slate-600 hover:text-blue-500" : "text-slate-400 hover:text-blue-600"
+            }`}
           >
-            Login
-          </span>
-        </p>
-      </form>
+            Existing Identity? Access Here →
+          </button>
+        </motion.div>
+      </div>
     </div>
   );
 };

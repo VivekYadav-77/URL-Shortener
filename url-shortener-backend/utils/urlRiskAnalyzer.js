@@ -3,59 +3,45 @@ import tldts from "tldts";
 export function analyzeUrlRisk(url) {
   let score = 0;
   const lower = url.toLowerCase();
+  const parsed = tldts.parse(url);
 
-  // Check if URL uses an IP address
+  // IP address in URL → suspicious
   if (/^https?:\/\/\d{1,3}(\.\d{1,3}){3}/.test(lower)) {
-    score += 30; // high risk
+    score += 30;
   }
 
-  //  Too long URLs
-  if (url.length > 200) score += 10;
-  if (url.length > 500) score += 20;
+  // Very long URLs (but allow Google/Amazon/etc.)
+  if (url.length > 2000) score += 10;
 
-  //  Too many query params → suspicious
-  if ((url.match(/\?/g) || []).length > 1) score += 10;
-  if ((url.match(/=/g) || []).length > 5) score += 10;
+  // Too many params (but Google commonly uses many)
+  const paramsCount = (url.match(/=/g) || []).length;
+  if (paramsCount > 40) score += 10;
 
-  // Suspicious characters
-  const suspiciousChars = /(%2e|%2f|%00|<|>|"|\\|\{|\}|\||\^|\~)/i;
-  if (suspiciousChars.test(lower)) score += 25;
+  // Very suspicious characters (avoid flagging %2f, %2e)
+  const dangerousChars = /(%00|<|>|"|\{|\}|\\|\^|\~)/;
+  if (dangerousChars.test(lower)) score += 25;
 
-  //  Base64 in URL (used by phishing kits)
+  // Base64 in URL
   if (/base64/i.test(lower)) score += 15;
 
-  // Unicode homoglyph attacks
-  if (/[^\u0000-\u007f]/.test(url)) {
-    score += 20;
-  }
-
-  //  Shortened malicious domains
-  const parsed = tldts.parse(url);
+  // Bad TLDs
   const badTlds = ["zip", "xyz", "click", "work", "top", "loan"];
-  if (parsed.domain && badTlds.includes(parsed.publicSuffix)) {
-    score += 15;
+  if (parsed.publicSuffix && badTlds.includes(parsed.publicSuffix)) {
+    score += 10;
   }
 
-  //  Phishing keyword detection
+  // Phishing keywords
   const phishingWords = ["login", "verify", "update", "password", "wallet"];
   if (phishingWords.some(w => lower.includes(w))) {
-    score += 15;
+    score += 10;
   }
 
-  //  Detect DECEPTIVE domains (typosquatting)
+  // Typosquatting — only penalize if not exact brand domain
   const trustedBrands = ["google", "facebook", "amazon", "apple"];
   for (let brand of trustedBrands) {
-    if (parsed.domain && parsed.domain.includes(brand)) {
-      const real = brand;
-      const found = parsed.domain;
-
-      // allow exact match
-      if (real !== found) score += 20;
-    }
+    if (parsed.domain === `${brand}.com`) continue;
+    if (parsed.domain?.includes(brand)) score += 15;
   }
-
-  //  Very new domain – if you want future improvement (need WHOIS)
-  // score += domainAgeCheck(parsed.domain);
 
   return score;
 }

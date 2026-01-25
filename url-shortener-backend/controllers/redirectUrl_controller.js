@@ -1,19 +1,34 @@
 import UrlCollection from "../models/url_model.js";
 import redis from "../config/redish.js";
-import ApiError from "../utils/ApiError.js";
+import path from "path";
+import { fileURLToPath } from "url";
 
-export const redirect = async (req, res, next) => {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const sendInvalidLinkPage = (res) => {
+  return res
+    .status(410)
+    .sendFile(path.join(__dirname, "../public/error/link-invalid.html"));
+};
+
+export const redirect = async (req, res) => {
+  console.log("helo from the redirect");
+
   try {
     const { shortCode } = req.params;
     const cacheKey = `url:${shortCode}`;
     const statsKey = `stats:${shortCode}`;
-
+    console.log(
+      "FILE PATH →",
+      path.join(__dirname, "../public/error/link-invalid.html"),
+    );
 
     const cached = await redis.get(cacheKey);
     let url;
 
     if (cached) {
-      url = cached; 
+      url = JSON.parse(cached);
 
       if (
         !url.isActive ||
@@ -21,7 +36,7 @@ export const redirect = async (req, res, next) => {
         (url.expiresAt && new Date(url.expiresAt) < new Date())
       ) {
         await redis.del(cacheKey);
-        return next(new ApiError(410, "Link expired or inactive"));
+        return sendInvalidLinkPage(res);
       }
     } else {
       const dbUrl = await UrlCollection.findOne({ shortCode });
@@ -32,7 +47,7 @@ export const redirect = async (req, res, next) => {
         dbUrl.status === "deleted" ||
         (dbUrl.expiresAt && dbUrl.expiresAt < Date.now())
       ) {
-        return next(new ApiError(410, "Link expired or inactive"));
+        return sendInvalidLinkPage(res);
       }
 
       url = {
@@ -42,26 +57,24 @@ export const redirect = async (req, res, next) => {
         expiresAt: dbUrl.expiresAt,
       };
 
-      await redis.set(cacheKey, url, { ex: 300 });
+      await redis.set(cacheKey, JSON.stringify(url), { ex: 300 });
     }
 
+    // ABUSE PROTECTION
     const abuseKey = `abuse:${shortCode}:${req.ip}`;
     const abuseCount = await redis.incr(abuseKey);
     if (abuseCount === 1) await redis.expire(abuseKey, 600);
 
     if (abuseCount > 100) {
-      const abuse = Number(await redis.hget(statsKey, "abuse")) || 0;
-      await redis.hset(statsKey, { abuse: abuse + 1 });
-
-      return next(new ApiError(403, "Too many requests"));
+      await redis.hincrby(statsKey, "abuse", 1);
+      return sendInvalidLinkPage(res);
     }
 
-    const clicks = Number(await redis.hget(statsKey, "clicks")) || 0;
-    await redis.hset(statsKey, { clicks: clicks + 1 });
+    await redis.hincrby(statsKey, "clicks", 1);
 
     return res.redirect(url.originalUrl);
-
   } catch (err) {
-    next(err);
+    console.error("Redirect Error:", err);
+    return sendInvalidLinkPage(res);
   }
 };

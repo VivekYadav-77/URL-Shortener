@@ -7,10 +7,18 @@ import {
   login,
   refresh,
   logout,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword
 } from "../controllers/auth_controller.js";
 const auth_router = express.Router();
 auth_router.post("/register", authLimiter,validate(registerSchema), register);
 auth_router.post("/login", authLimiter,validate(loginSchema), login);
 auth_router.post("/refresh", refresh);
 auth_router.post("/logout", logout);
+auth_router.post("/forgot-password", authLimiter, forgotPassword);
+auth_router.get("/verify-email/:token", verifyEmail);
+auth_router.post("/reset-password/:token", resetPassword);
+auth_router.post("/resend-verification", authLimiter, resendVerification);
 export default auth_router;

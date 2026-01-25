@@ -5,171 +5,29 @@ import { validateAlias } from "../utils/validateAlias.js";
 import { generateShortCode } from "../utils/generateShortCode.js";
 import { checkUrlSecurity } from "../utils/secureScanner.js";
 import { analyzeUrlRisk } from "../utils/urlRiskAnalyzer.js";
-import { logSecurityEvent } from "../utils/securityLogger.js";
+import SecurityLog from "../models/securityLog_model.js";
+
 import redis from "../config/redish.js";
 export const createShortUrl = async (req, res, next) => {
   try {
     const { originalUrl, customAlias, expiresAt } = req.body;
 
-  
     if (!originalUrl || !validateUrl(originalUrl)) {
       return next(new ApiError(400, "Invalid URL"));
     }
 
-   
-    const adminAction = await UrlCollection.findOne({
-      originalUrl,
-      $or: [{ deletedByRole: "admin" }, { disabledByRole: "admin" }],
-    });
-
-    if (adminAction) {
-      return next(
-        new ApiError(
-          403,
-          "This URL was previously flagged by an administrator. You cannot shorten it again."
-        )
-      );
-    }
-
-    
-    const riskScore = analyzeUrlRisk(originalUrl);
+    const now = Date.now();
+    const MAX_EXPIRY = 7 * 24 * 60 * 60 * 1000;
+    const DEFAULT_EXPIRY = 5 * 24 * 60 * 60 * 1000;
 
   
-    if (riskScore >= 100) {
-      await logSecurityEvent({
-        type: "critical_blocked",
-        originalUrl,
-        user: req.userId,
-        metadata: { riskScore, ip: req.ip },
-      });
-
-      return next(new ApiError(400, "Critical malicious URL detected."));
-    }
-
-    if (riskScore >= 60) {
-      await logSecurityEvent({
-        type: "high_risk_blocked",
-        originalUrl,
-        user: req.userId,
-        metadata: { riskScore, ip: req.ip },
-      });
-
-      return next(new ApiError(400, "High-risk URL blocked."));
-    }
-
-    const isSuspicious = riskScore >= 30;
-
-    const SCAN_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; 
-
-    const existingRecord = await UrlCollection.findOne({
-      originalUrl,
-      "scanCache.safe": { $ne: null },
-    }).lean();
-
-    let scanResult;
-
-    const cacheValid =
-      existingRecord &&
-      existingRecord.scanCache.checkedAt &&
-      Date.now() - new Date(existingRecord.scanCache.checkedAt).getTime() <
-        SCAN_CACHE_TTL;
-
-    if (cacheValid) {
-      scanResult = {
-        safe: existingRecord.scanCache.safe,
-        fromCache: true,
-        source: existingRecord.scanCache.source,
-      };
-    } else {
-      
-      scanResult = await checkUrlSecurity(originalUrl);
-
-      if (scanResult.rateLimited) {
-        await logSecurityEvent({
-          type: "scan_rate_limited",
-          originalUrl,
-          user: req.userId,
-          metadata: { scannerUsed: scanResult.source, ip: req.ip },
-        });
-
-        return next(
-          new ApiError(
-            503,
-            "Security scanning service is rate-limited. Please try again later."
-          )
-        );
-      }
-
-      await logSecurityEvent({
-        type: "scan_success",
-        originalUrl,
-        user: req.userId,
-        metadata: {
-          safe: scanResult.safe,
-          scannerUsed: scanResult.source,
-          ip: req.ip,
-        },
-      });
-console.log("vieurs",scanResult.safe)
-      if (!scanResult.safe) {
-        return next(new ApiError(400, "Unsafe or malicious URL detected."));
-      }
-    }
-
-    
-    await UrlCollection.updateMany(
-      { originalUrl },
-      {
-        $set: {
-          scanCache: {
-            safe: scanResult.safe,
-            checkedAt: new Date(),
-            source: scanResult.source || "safe_browsing",
-          },
-        },
-      }
-    );
-
-   
-    let shortCode;
-    let isCustom = false;
-
-    if (customAlias) {
-      const alias = customAlias.trim().toLowerCase();
-
-      if (!validateAlias(customAlias)) {
-        return next(new ApiError(400, "Invalid alias"));
-      }
-
-      const exists = await UrlCollection.exists({ shortCode: customAlias });
-      if (exists) {
-        return next(new ApiError(409, "Alias already taken"));
-      }
-
-      shortCode = alias;
-      isCustom = true;
-    } else {
-      do {
-        shortCode = generateShortCode();
-      } while (await UrlCollection.exists({ shortCode }));
-    }
-
-   
-    const now = Date.now();
-    const MAX_EXPIRY = 7 * 24 * 60 * 60 * 1000; 
-    const DEFAULT_EXPIRY = 5 * 24 * 60 * 60 * 1000; 
-
     let expiresAtFinal;
-
     if (expiresAt) {
       const requested = new Date(expiresAt).getTime();
-
-      if (isNaN(requested) || requested <= now) {
+      if (isNaN(requested) || requested <= now)
         return next(new ApiError(400, "Expiry must be within 7 days"));
-      }
-      if (requested - now > MAX_EXPIRY) {
-        return next(new ApiError(400, "Expiry must be within 7 days"));
-      }
+      if (requested - now > MAX_EXPIRY)
+        return next(new ApiError(400, "Expiry cannot exceed 7 days"));
 
       expiresAtFinal = new Date(requested);
     } else {
@@ -177,6 +35,144 @@ console.log("vieurs",scanResult.safe)
     }
 
    
+    let shortCode = null;
+    let isCustom = false;
+
+    if (customAlias) {
+      const alias = customAlias.trim().toLowerCase();
+
+      if (!validateAlias(alias)) {
+        return next(new ApiError(400, "Invalid alias format."));
+      }
+
+      const exists = await UrlCollection.exists({ shortCode: alias });
+      if (exists) {
+        return next(new ApiError(409, "Alias already taken"));
+      }
+
+      shortCode = alias;
+      isCustom = true;
+    }
+
+   
+    const adminFlag = await UrlCollection.exists({
+      originalUrl,
+      $or: [{ deletedByRole: "admin" }, { disabledByRole: "admin" }],
+    });
+
+    if (adminFlag) {
+      return next(new ApiError(403, "This URL was blocked by admin."));
+    }
+
+  
+    const blockedBefore = await SecurityLog.exists({
+      originalUrl,
+      type: { $in: ["high_risk_blocked", "critical_blocked"] },
+    });
+
+    if (blockedBefore) {
+      return next(new ApiError(400, "This URL was previously flagged as harmful."));
+    }
+
+   
+    const riskScore = analyzeUrlRisk(originalUrl);
+
+    if (riskScore >= 100) {
+      await SecurityLog.create({
+        type: "critical_blocked",
+        originalUrl,
+        shortCode,
+        user: req.userId,
+        metadata: { riskScore, ip: req.ip },
+      });
+      return next(new ApiError(400, "Critical malicious URL detected."));
+    }
+
+    if (riskScore >= 60) {
+      await SecurityLog.create({
+        type: "high_risk_blocked",
+        originalUrl,
+        shortCode,
+        user: req.userId,
+        metadata: { riskScore, ip: req.ip },
+      });
+      return next(new ApiError(400, "High-risk URL blocked."));
+    }
+
+    const isSuspicious = riskScore >= 30;
+
+   
+    const twoWeekMs = 14 * 24 * 60 * 60 * 1000;
+
+    const urlDoc = await UrlCollection.findOneAndUpdate(
+      { originalUrl },
+      { $setOnInsert: { originalUrl } },
+      { upsert: true, new: true }
+    );
+
+  
+    let scanResult;
+    const cache = urlDoc.scanCache;
+
+    const cacheValid =
+      cache &&
+      cache.safe !== null &&
+      cache.checkedAt &&
+      now - new Date(cache.checkedAt).getTime() < twoWeekMs;
+
+    if (cacheValid) {
+      scanResult = {
+        safe: cache.safe,
+        source: cache.source,
+        fromCache: true,
+      };
+    } else {
+    
+      scanResult = await checkUrlSecurity(originalUrl);
+
+      if (scanResult.rateLimited) {
+        return next(
+          new ApiError(
+            503,
+            "Security scanning service is rate-limited. Try again later."
+          )
+        );
+      }
+
+      await UrlCollection.updateMany(
+        { originalUrl },
+        {
+          scanCache: {
+            safe: scanResult.safe,
+            checkedAt: new Date(),
+            source: scanResult.source ?? "safe_browsing",
+          },
+        }
+      );
+
+      await SecurityLog.create({
+        type: "scan_success",
+        originalUrl,
+        shortCode,
+        user: req.userId,
+        metadata: {
+          safe: scanResult.safe,
+          scannerUsed: scanResult.source,
+          ip: req.ip,
+        },
+      });
+
+      if (!scanResult.safe) {
+        return next(new ApiError(400, "Unsafe or malicious URL detected."));
+      }
+    }
+
+    
+    if (!shortCode) {
+      do {
+        shortCode = generateShortCode();
+      } while (await UrlCollection.exists({ shortCode }));
+    }
     await UrlCollection.create({
       originalUrl,
       shortCode,
@@ -186,7 +182,6 @@ console.log("vieurs",scanResult.safe)
       ...(isSuspicious ? { abuseScore: 1, lastAbuseAt: new Date() } : {}),
     });
 
-    
     return res.status(201).json({
       shortUrl: `${process.env.CLIENT_URL}/${shortCode}`,
     });
@@ -194,6 +189,7 @@ console.log("vieurs",scanResult.safe)
     next(err);
   }
 };
+
 export const getMyUrls = async (req, res, next) => {
   try {
     const urls = await UrlCollection.find({
@@ -242,7 +238,7 @@ export const getUrlStats = async (req, res, next) => {
     const url = await UrlCollection.findOne({
       _id: req.params.id,
       owner: req.userId,
-    }).select("clicks createdAt expiresAt isActive");
+    }).select("clicks createdAt expiresAt isActive disabledAt disabledByRole deletedAt deletedByRole abuseScore shortCode");
 
     if (!url) {
       return next(new ApiError(404, "URL not found"));

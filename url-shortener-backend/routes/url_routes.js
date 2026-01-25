@@ -1,6 +1,6 @@
 import express from "express";
 import { validate } from "../middleware/validate_middleware.js";
-import { createUrlSchema,updateUrlSchema } from "../config/url_validator.js";
+import { createUrlSchema } from "../config/url_validator.js";
 import {
   createShortUrl,
   getMyUrls,
@@ -20,7 +20,7 @@ url_routes.post("/", authMiddleware, createUrlLimiter,validate(createUrlSchema),
 url_routes.get("/history",authMiddleware,getUrlHistory)
 url_routes.get("/my", authMiddleware, getMyUrls);
 url_routes.get("/:id", authMiddleware, getUrlById);
-url_routes.patch("/:id", authMiddleware,validate(updateUrlSchema), updateUrl);
+url_routes.patch("/:id", authMiddleware, updateUrl);
 url_routes.get("/:id/stats", authMiddleware, getUrlStats);
 url_routes.delete("/:id", authMiddleware, deleteUrl);
 export default url_routes;

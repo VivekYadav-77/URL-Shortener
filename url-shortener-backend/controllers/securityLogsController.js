@@ -7,7 +7,7 @@ export const getSecurityLogs = async (req, res, next) => {
     const logs = await SecurityLog.find()
       .sort({ createdAt: -1 })
       .limit(500); 
-
+console.log("logs",logs)
     return res.status(200).json(logs);
   } catch (err) {
     next(err);

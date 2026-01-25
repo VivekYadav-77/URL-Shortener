@@ -18,6 +18,8 @@ import AdminUserProfile from "./Pages/AdminUserProfile";
 import AdminUrls from "./Pages/AdminUrl";
 import AdminAbuseUrls from "./Pages/AdminAbuseUrl";
 import AdminSecurityLogsPage from "./Pages/AdminSecurityLogsPage";
+import VerifyEmail from "./Pages/VerifyEmail";
+import ResetPassword from "./Pages/ResetPassword";
 function App() {
   const dispatch = useAppDispatch();
 
@@ -49,6 +51,8 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/verify-email/:token" element={<VerifyEmail />} />
+<Route path="/reset-password/:token" element={<ResetPassword />} />
         {/*AdminRoute */}
         <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminDashboard />} />

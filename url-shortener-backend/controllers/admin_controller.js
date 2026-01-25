@@ -168,7 +168,9 @@ export const getAbuseUrls = async (req, res, next) => {
   try {
     const urls = await UrlCollection.find({
       abuseScore: { $gt: 0 }
-    }).sort({ abuseScore: -1 });
+    })
+      .populate('owner', 'email')
+      .sort({ abuseScore: -1 });
 
     res.json(urls);
   } catch (err) {

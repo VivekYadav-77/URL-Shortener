@@ -1,5 +1,7 @@
 import express from 'express'
 import cors from 'cors'
+import path from "path"
+import { fileURLToPath } from 'url'
 import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
@@ -15,7 +17,10 @@ import admin_router from './routes/admin_routes.js'
 import user_routers from './routes/user_routes.js'
 //import "./crons/cronexpireUrlsJob.js"
 //import "./crons/cronRedisStats.js"
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express()
+app.use(express.static(path.join(__dirname, "public")));
 app.use(helmet( helmet({
     contentSecurityPolicy: {
       directives: {
@@ -45,5 +50,10 @@ app.use("/api/urls",url_router)
 app.use("/api/users",user_routers)
 app.use('/api/admin',admin_router)
 app.get("/:shortCode",abuseGuard,redisRateLimit("rl", 50, 60),trafficAnomalyGuard,redirect)
+app.use((req, res) => {
+  res
+    .status(404)
+    .sendFile(path.join(__dirname, "./public/error/not-found.html"));
+});
 app.use(errorHandler)
 export default app

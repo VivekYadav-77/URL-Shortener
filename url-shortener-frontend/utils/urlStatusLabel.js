@@ -1,18 +1,16 @@
 export const getUrlStatusLabel = (url) => {
-  if (url.status === "deleted") {
-    return url.deletedBy === "admin"
-      ? "Removed by admin"
-      : "Deleted by you";
+  if (url.deletedAt || url.status === "deleted") {
+    const role = url.deletedByRole || url.deletedBy;
+    return role === "admin" ? "Removed by admin" : "Deleted by you";
   }
 
-  if (url.status === "expired") {
+  if (url.status === "expired" || (url.expiresAt && new Date(url.expiresAt) < new Date())) {
     return "Expired";
   }
 
   if (!url.isActive) {
-    return url.disabledBy === "admin"
-      ? "Disabled by admin"
-      : "Disabled by you";
+    const role = url.disabledByRole || url.disabledBy;
+    return role === "admin" ? "Disabled by admin" : "Disabled by you";
   }
 
   return "Active";

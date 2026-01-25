@@ -55,6 +55,33 @@ export const authApi = createApi({
       }),
       invalidatesTags: ["User"]
     }),
+    verifyEmail: builder.query({
+      query: (token) => `/auth/verify-email/${token}`,
+    }),
+
+    resendVerification: builder.mutation({
+      query: (email) => ({
+        url: "/auth/resend-verification",
+        method: "POST",
+        body: { email },
+      }),
+    }),
+
+    forgotPassword: builder.mutation({
+      query: (email) => ({
+        url: "/auth/forgot-password",
+        method: "POST",
+        body: { email },
+      }),
+    }),
+
+    resetPassword: builder.mutation({
+      query: ({ token, password }) => ({
+        url: `/auth/reset-password/${token}`,
+        method: "POST",
+        body: { password },
+      }),
+    }),
 
   }),
 });
@@ -67,4 +94,8 @@ export const {
   useLogoutMutation,
   useUpdateMeMutation,
   useChangePasswordMutation,
+  useVerifyEmailQuery,
+  useResendVerificationMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
 } = authApi;
