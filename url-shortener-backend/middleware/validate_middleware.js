@@ -1,3 +1,4 @@
+import ApiError from "../utils/ApiError.js";
 export const validate =
   (schema, property = "body") =>
   (req, res, next) => {
@@ -5,9 +6,7 @@ export const validate =
       req[property] = schema.parse(req[property]);
       next();
     } catch (err) {
-      return res.status(400).json({
-        message: "Invalid input",
-        errors: err.errors,
-      });
+      return next(new ApiError(400, "Invalid input"))
+     
     }
   };

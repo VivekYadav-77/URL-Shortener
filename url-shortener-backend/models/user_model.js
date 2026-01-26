@@ -57,7 +57,7 @@ userSchema.pre("save", async function (next) {
   try {
     this.password = await argon2.hash(this.password);
   } catch (error) {
-    next(err);
+    next(error);
   }
 });
 userSchema.methods.comparePassword = function (candidatePassword) {

@@ -7,7 +7,7 @@ import {
   generateRefreshToken,
   generateTokenID,
 } from "../utils/tokens.js";
-import { sendVerificationLogic } from "../utils/sendVerificationEmail.js";
+import { sendAuthEmail } from "../utils/sendVerificationEmail.js";
 //Register
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
@@ -29,7 +29,8 @@ export const register = async (req, res, next) => {
 
   try {
     // 2. Trigger the verification email logic
-    await sendVerificationLogic(user); 
+   const hello = await sendAuthEmail(user, 'VERIFY'); 
+   console.log("email",hello)
 
     res.status(201).json({ 
       message: "Registration successful. Please check your email to verify your account before logging in." 
@@ -44,14 +45,16 @@ export const register = async (req, res, next) => {
 //Login
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-
+console.log("in the login")
   if (!email.endsWith("@gmail.com")) {
     return next(new ApiError(400, "Only Gmail accounts are allowed"));
   }
 
   const user = await UserCollection.findOne({ email }).select("+password");
+  console.log("user",user)
 
   if (!user || !(await user.comparePassword(password))) {
+    console.log("in the credentials")
     return next(new ApiError(401, "Invalid credentials"));
   }
 
@@ -110,10 +113,9 @@ export const resendVerification = async (req, res, next) => {
   }
 
   try {
-    await sendVerificationLogic(user); // This handles the 60s cooldown automatically
+    await sendAuthEmail(user,'VERIFY'); 
     res.status(200).json({ message: "Verification link resent to your email." });
   } catch (error) {
-    // This will catch the "Please wait 60 seconds" error from sendVerificationLogic
     return next(new ApiError(429, error.message));
   }
 };
