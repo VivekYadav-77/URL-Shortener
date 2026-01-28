@@ -6,7 +6,10 @@ import {
   Link2, 
   ShieldAlert, 
   FileText,
-  ChevronRight
+  ChevronRight,
+  ShieldBan,
+Info,
+UserRound
 } from "lucide-react";
 import { useTheme } from "../App/themeStore";
 
@@ -33,6 +36,10 @@ export const Sidebar = ({ onNavigate, isMobile }) => {
     { to: "/admin/urls", label: "URL Management", icon: <Link2 size={20} /> },
     { to: "/admin/abuse", label: "Abuse Reports", icon: <ShieldAlert size={20} /> },
     { to: "/admin/logs", label: "System Logs", icon: <FileText size={20} /> },
+    { to: "/admin/blockeduser", label: "Blocked User", icon: <ShieldBan size={20} /> },
+    { to: "/aboutus", label: "Aboutus", icon: <Info size={20} /> },
+
+
   ];
 
   return (

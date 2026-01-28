@@ -20,7 +20,10 @@ import user_routers from './routes/user_routes.js'
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express()
-app.use(express.static(path.join(__dirname, "public")));
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1); 
+} else {
+  app.set('trust proxy', false); }
 app.use(helmet( helmet({
     contentSecurityPolicy: {
       directives: {
@@ -31,20 +34,36 @@ app.use(helmet( helmet({
       }
     }
   })))
-app.use(hpp());
-console.log(process.env.CLIENT_URL)
 app.use(cors({
-    origin:process.env.CLIENT_URL,
-    credentials:true
-}))
-app.use(express.json());
-app.use(cookieParser());
+  origin: process.env.CLIENT_URL,
+  credentials: true
+}));
+
+console.log(process.env.CLIENT_URL)
+
+
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: "Too many requests from this IP, please try again after 15 minutes"
-})
+  windowMs: 15 * 60 * 1000, 
+  max: 100, 
+ 
+  standardHeaders: 'draft-7', 
+  legacyHeaders: false,
+
+ 
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json({
+      success: false,
+      error: "Too many requests. Please wait 15 minutes before trying again.",
+    });
+  },
+});
 app.use(limiter)
+app.use(express.json());
+app.use(hpp());
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
+
+
 app.use("/api/auth",auth_router)
 app.use("/api/urls",url_router)
 app.use("/api/users",user_routers)

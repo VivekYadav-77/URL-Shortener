@@ -24,7 +24,6 @@ const AdminDashboard = () => {
   const { data: stats, isLoading } = useGetAdminStatsQuery();
   const { theme } = useTheme();
   const isDark = theme === "dark";
-
   if (isLoading) {
     return (
       <AdminLayout>

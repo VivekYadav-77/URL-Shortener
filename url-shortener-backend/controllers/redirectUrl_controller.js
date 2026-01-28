@@ -13,22 +13,18 @@ const sendInvalidLinkPage = (res) => {
 };
 
 export const redirect = async (req, res) => {
-  console.log("helo from the redirect");
-
   try {
     const { shortCode } = req.params;
     const cacheKey = `url:${shortCode}`;
     const statsKey = `stats:${shortCode}`;
-    console.log(
-      "FILE PATH →",
-      path.join(__dirname, "../public/error/link-invalid.html"),
-    );
 
     const cached = await redis.get(cacheKey);
     let url;
 
     if (cached) {
-      url = JSON.parse(cached);
+      // FIX: Upstash often returns the object directly if it's already parsed
+      // Only parse if it is a string
+      url = typeof cached === "string" ? JSON.parse(cached) : cached;
 
       if (
         !url.isActive ||
@@ -57,10 +53,11 @@ export const redirect = async (req, res) => {
         expiresAt: dbUrl.expiresAt,
       };
 
+      // Ensure we store it as a stringified JSON for consistency
       await redis.set(cacheKey, JSON.stringify(url), { ex: 300 });
     }
 
-    // ABUSE PROTECTION
+    // ABUSE PROTECTION & STATS
     const abuseKey = `abuse:${shortCode}:${req.ip}`;
     const abuseCount = await redis.incr(abuseKey);
     if (abuseCount === 1) await redis.expire(abuseKey, 600);
@@ -72,6 +69,7 @@ export const redirect = async (req, res) => {
 
     await redis.hincrby(statsKey, "clicks", 1);
 
+    // Final Redirect
     return res.redirect(url.originalUrl);
   } catch (err) {
     console.error("Redirect Error:", err);

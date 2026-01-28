@@ -6,7 +6,7 @@ import {
   useDeleteSecurityLogsMutation,
 } from "../Features/admin/adminApi";
 import { useTheme } from "../App/themeStore";
-import { Search, Trash2, ShieldAlert, X, Copy, ExternalLink, Filter } from "lucide-react";
+import { Search, Trash2, ShieldAlert, X, Copy, ExternalLink, Globe } from "lucide-react";
 
 const FILTER_OPTIONS = [
   { label: "All Events", value: "all" },
@@ -18,8 +18,11 @@ export default function AdminSecurityLogsPage() {
   const [filterType, setFilterType] = useState("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [selectedUrl, setSelectedUrl] = useState(null); // URL Detail Modal
-  const [feedback, setFeedback] = useState(null); // Toast state
+  const [selectedUrl, setSelectedUrl] = useState(null); 
+  const [feedback, setFeedback] = useState(null); 
+  
+  // Custom Modal State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const { data: allLogs = [], isLoading: loadingAll } = useGetSecurityLogsQuery();
   const { data: highRiskLogs = [], isLoading: loadingHigh } = useGetHighRiskLogsQuery();
@@ -28,7 +31,7 @@ export default function AdminSecurityLogsPage() {
   const logs = filterType === "all" ? allLogs : highRiskLogs;
   const isLoading = filterType === "all" ? loadingAll : loadingHigh;
 
-  // Theme Variables
+  // Theme Styles
   const pageBg = theme === "light" ? "bg-white text-black" : "bg-black text-white";
   const cardBg = theme === "light" ? "bg-white" : "bg-gray-900";
   const border = theme === "light" ? "border-gray-300" : "border-gray-700";
@@ -60,33 +63,70 @@ export default function AdminSecurityLogsPage() {
     page * ITEMS_PER_PAGE
   );
 
-  const handleDeleteLogs = async () => {
-    if (confirm("Permanently delete ALL security logs? This action is irreversible.")) {
-      try {
-        await deleteLogs().unwrap();
-        toast("Security logs cleared");
-      } catch {
-        toast("Failed to clear logs", "error");
-      }
+  const handleDeleteLogsRequest = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmClearLogs = async () => {
+    setIsDeleteModalOpen(false);
+    try {
+      await deleteLogs().unwrap();
+      toast("Security logs cleared");
+    } catch {
+      toast("Failed to clear logs", "error");
     }
   };
 
   return (
     <AdminLayout>
-      <div className={`min-h-screen ${pageBg} transition-colors duration-300`}>
+      <div className={`min-h-screen ${pageBg} transition-colors duration-300 p-4 md:p-8`}>
         
         {/* TOAST NOTIFICATION */}
         {feedback && (
           <div className="fixed bottom-6 right-6 z-50">
-            <div className={`px-5 py-3 rounded-2xl shadow-2xl text-sm font-black border ${feedback.type === "success" ? "bg-green-600 text-white border-green-500" : "bg-red-600 text-white border-red-500"}`}>
+            <div className={`px-5 py-3 rounded-2xl shadow-2xl text-sm font-black border animate-in slide-in-from-bottom-4 duration-300 ${
+              feedback.type === "success" ? "bg-green-600 text-white border-green-500" : "bg-red-600 text-white border-red-500"
+            }`}>
               {feedback.msg}
+            </div>
+          </div>
+        )}
+
+        {/* SYSTEM PURGE MODAL */}
+        {isDeleteModalOpen && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl animate-in fade-in duration-300">
+            <div className={`w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl border transition-all scale-in-center text-center ${cardBg} ${border}`}>
+              <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-6 border border-red-500/20">
+                  <ShieldAlert size={40} />
+                </div>
+                <h3 className={`text-2xl font-black uppercase tracking-tighter mb-2 ${strongText}`}>Wipe Security Audit?</h3>
+                <p className={`text-sm font-medium mb-8 leading-relaxed ${softText}`}>
+                  This will permanently erase the entire audit trail and logs. This data cannot be recovered once purged from the system.
+                </p>
+
+                <div className="flex flex-col w-full gap-3">
+                  <button
+                    onClick={confirmClearLogs}
+                    className="w-full bg-red-600 hover:bg-red-500 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-red-600/20"
+                  >
+                    Confirm System Purge
+                  </button>
+                  <button
+                    onClick={() => setIsDeleteModalOpen(false)}
+                    className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 border ${border} ${strongText} hover:bg-gray-100 dark:hover:bg-gray-800`}
+                  >
+                    Keep Logs
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
         {/* URL DETAIL MODAL */}
         {selectedUrl && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
             <div className={`w-full max-w-lg rounded-3xl p-8 shadow-2xl border ${cardBg} ${border}`}>
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
@@ -120,15 +160,14 @@ export default function AdminSecurityLogsPage() {
           </div>
         )}
 
-        {/* HEADER */}
+        {/* PAGE HEADER */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h2 className={` text-4xl font-extrabold tracking-tight mb-2 bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent`}>Security Audit</h2>
-           
+            <h2 className="text-4xl font-extrabold tracking-tight mb-2 bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Security Audit</h2>
             <p className={`mt-2 ${softText}`}>Monitor suspicious activities and system scans.</p>
           </div>
           <button
-            onClick={handleDeleteLogs}
+            onClick={handleDeleteLogsRequest}
             disabled={deleting}
             className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white rounded-2xl font-bold shadow-lg shadow-red-500/30 hover:bg-red-700 transition-all disabled:opacity-50"
           >
@@ -179,19 +218,20 @@ export default function AdminSecurityLogsPage() {
                   <th className="p-5 text-center">Shortcode</th>
                   <th className="p-5 text-center">Engine / Risk</th>
                   <th className="p-5 text-center">Source IP</th>
+                  <th className="p-5 text-center">Location</th>
                   <th className="p-5 text-center">Timestamp</th>
                 </tr>
               </thead>
               <tbody className={`divide-y ${border}`}>
                 {isLoading ? (
                   <tr>
-                    <td colSpan="6" className="p-20 text-center font-bold text-blue-500 animate-pulse">
+                    <td colSpan="7" className="p-20 text-center font-bold text-blue-500 animate-pulse">
                       Analyzing Security Database...
                     </td>
                   </tr>
                 ) : paginated.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="p-20 text-center font-bold text-gray-500">
+                    <td colSpan="7" className="p-20 text-center font-bold text-gray-500">
                       No security anomalies detected.
                     </td>
                   </tr>
@@ -216,14 +256,28 @@ export default function AdminSecurityLogsPage() {
                         <div className="flex flex-col">
                            <span className="text-xs font-bold">{log.metadata?.scannerUsed || "N/A"}</span>
                            <span className={`text-[10px] font-black ${log.metadata?.riskScore > 10 ? 'text-red-500' : 'text-green-500'}`}>
-                              Score: {log.metadata?.riskScore ?? "0"}
+                             Score: {log.metadata?.riskScore ?? "0"}
                            </span>
                         </div>
                       </td>
                       <td className="p-5 text-center">
-                        <span className="text-xs font-mono text-white bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
+                        <span className={`text-xs font-mono px-2 py-1 rounded-md ${theme === 'light' ? 'bg-gray-100 text-gray-700' : 'bg-gray-800 text-gray-300'}`}>
                           {log.metadata?.ip || "—"}
                         </span>
+                      </td>
+                      {/* NEW LOCATION INFO COLUMN */}
+                      <td className="p-5 text-center">
+                        <div className="flex flex-col items-center gap-1">
+                           <div className="flex items-center gap-1.5 text-blue-500">
+                              <Globe size={12} />
+                              <span className="text-xs font-black uppercase tracking-tighter">
+                                 {log.metadata?.country || "UNK"}
+                              </span>
+                           </div>
+                           <span className={`text-[10px] font-bold ${softText}`}>
+                              {log.metadata?.city || "Unknown City"}
+                           </span>
+                        </div>
                       </td>
                       <td className="p-5 text-center">
                         <p className="text-xs font-bold">{new Date(log.createdAt).toLocaleDateString()}</p>

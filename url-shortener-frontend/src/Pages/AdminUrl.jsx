@@ -51,7 +51,6 @@ const AdminURLsPage = () => {
     page,
     limit: 15,
   });
-
   const [enableUrl] = useAdminEnableUrlMutation();
   const [disableUrl] = useAdminDisableUrlMutation();
   const [deleteUrl] = useAdminDeleteUrlMutation();
@@ -238,7 +237,7 @@ const AdminURLsPage = () => {
                         <td className="p-5">
                            <div className="flex justify-center items-center gap-3">
                               {url.status === "inactive" && (
-                                <button onClick={() => handleEnable(url._id)} className="p-2.5 rounded-xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition" title="Enable">
+                                <button onClick={() => handleEnable(url._id)} className="p-2.5 rounded-xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition" title="Enable" >
                                   <Power size={18} />
                                 </button>
                               )}

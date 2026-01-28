@@ -1,50 +1,44 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useResetPasswordMutation } from "../Features/auth/authapi";
+import { useNavigate } from "react-router-dom";
+import { useForgotPasswordMutation } from "../Features/auth/authapi"; // Ensure this hook exists in your API slice
 import { useTheme } from "../App/themeStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  Lock, 
-  Eye, 
-  EyeOff, 
+  Mail, 
   AlertCircle, 
   CheckCircle2, 
   Zap, 
-  ShieldCheck,
-  ChevronRight
+  ArrowLeft,
+  ShieldQuestion
 } from "lucide-react";
 
-const ResetPassword = () => {
-  const { token } = useParams(); // Assuming you're getting the token from the URL
+export const ForgotPassword = () => {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const isDark = theme === "dark";
 
-  // State
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPass, setShowPass] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [email, setEmail] = useState("");
   const [localError, setLocalError] = useState("");
 
-  const [resetPassword, { isLoading, isSuccess, isError, error }] = useResetPasswordMutation();
+  // Hook from your RTK Query API slice
+  const [forgotPassword, { isLoading, isSuccess, isError, error }] = useForgotPasswordMutation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLocalError("");
 
-    // VALIDATION RULES
-    if (password.length < 9) {
-      return setLocalError("Security Violation: Key must be 9+ characters.");
+    // Validation (Matching your Login logic)
+    if (!email.includes("@") || !email.includes(".")) {
+      return setLocalError("Valid identity portal required");
     }
-    if (password !== confirmPassword) {
-      return setLocalError("Mismatch Detected: Passwords do not align.");
+    if (!email.endsWith("@gmail.com")) {
+      return setLocalError("Only Gmail accounts are authorized");
     }
 
     try {
-      await resetPassword({ token, password }).unwrap();
+      await forgotPassword( email ).unwrap();
     } catch (err) {
-      // Error handled by RTK query state
+      // Error handled by RTK state
     }
   };
 
@@ -53,12 +47,21 @@ const ResetPassword = () => {
       isDark ? "bg-[#020202]" : "bg-slate-50"
     }`}>
       
-      {/* AMBIENT BACKGROUND GLOW */}
-      <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[120px] rounded-full animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-purple-600/10 blur-[120px] rounded-full animate-pulse" />
+      {/* BACKGROUND GLOW */}
+      <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[120px] rounded-full" />
 
       <div className="relative w-full max-w-md">
         
+        {/* BACK BUTTON */}
+        <button 
+          onClick={() => navigate("/login")}
+          className={`absolute -top-12 left-0 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
+            isDark ? "text-slate-600 hover:text-white" : "text-slate-400 hover:text-slate-900"
+          }`}
+        >
+          <ArrowLeft size={14} /> Return to Access
+        </button>
+
         {/* HEADER */}
         <div className="text-center mb-10">
           <motion.div 
@@ -67,13 +70,13 @@ const ResetPassword = () => {
               isDark ? "bg-blue-500/10 border-blue-500/20 text-blue-500" : "bg-white border-slate-200 text-blue-600"
             }`}
           >
-            <ShieldCheck size={32} />
+            <ShieldQuestion size={32} />
           </motion.div>
           <h2 className={`text-4xl font-black tracking-tighter ${isDark ? "text-white" : "text-slate-900"}`}>
-            Update <span className="text-blue-600">Secret.</span>
+            Recover <span className="text-blue-600">Access.</span>
           </h2>
           <p className={`text-[10px] font-black uppercase tracking-[0.3em] mt-2 ${isDark ? "text-slate-500" : "text-slate-400"}`}>
-            Credential Re-Synthesis
+            Identity Verification Request
           </p>
         </div>
 
@@ -86,19 +89,16 @@ const ResetPassword = () => {
                 isDark ? "bg-white/[0.02] border-white/10 shadow-black" : "bg-white border-slate-200"
               }`}
             >
-              <div className="h-20 w-20 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto border border-green-500/20">
-                <CheckCircle2 size={40} />
+              <div className="h-20 w-20 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mx-auto border border-blue-500/20">
+                <Mail size={40} />
               </div>
-              <h3 className={`text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>Identity Secured</h3>
+              <h3 className={`text-2xl font-black ${isDark ? "text-white" : "text-slate-900"}`}>Link Dispatched</h3>
               <p className={`text-sm font-medium ${isDark ? "text-gray-500" : "text-gray-400"}`}>
-                Your new security key has been hashed and deployed.
+                A secure synthesis link has been sent to <span className="text-blue-500 font-bold">{email}</span>.
               </p>
-              <button 
-                onClick={() => navigate("/login")}
-                className="w-full py-4 rounded-2xl bg-blue-600 text-white font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-blue-600/20 hover:bg-blue-500 transition-all"
-              >
-                Access Portal
-              </button>
+              <p className="text-[10px] uppercase font-black text-slate-600 tracking-tighter">
+                Check your inbox (and spam) to continue.
+              </p>
             </motion.div>
           ) : (
             <motion.form 
@@ -107,62 +107,21 @@ const ResetPassword = () => {
                 isDark ? "bg-white/[0.02] border-white/10 shadow-black" : "bg-white border-slate-200 shadow-slate-200/50"
               }`}
             >
-              {/* NEW PASSWORD */}
-              <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-blue-500 flex justify-between px-1">
-                  <span>New Secret Key</span>
-                  <span className={`${password.length >= 9 ? "text-green-500" : "text-gray-500"}`}>
-                    {password.length}/9
-                  </span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPass ? "text" : "password"}
-                    required
-                    placeholder="••••••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className={`w-full px-6 py-4 pr-14 rounded-2xl border font-bold text-sm outline-none transition-all ${
-                      isDark ? "bg-black/40 border-white/10 text-white focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-500"
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(!showPass)}
-                    className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${
-                      isDark ? "text-slate-600 hover:text-white" : "text-slate-400 hover:text-slate-900"
-                    }`}
-                  >
-                    {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
-
-              {/* CONFIRM PASSWORD */}
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-blue-500 px-1">
-                  Confirm Synthesis
+                  Identity Portal (Email)
                 </label>
                 <div className="relative">
                   <input
-                    type={showConfirm ? "text" : "password"}
+                    type="email"
                     required
-                    placeholder="••••••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className={`w-full px-6 py-4 pr-14 rounded-2xl border font-bold text-sm outline-none transition-all ${
+                    placeholder="email@example.com"
+                    value={email}
+                    onChange={(e) => { setEmail(e.target.value); setLocalError(""); }}
+                    className={`w-full px-6 py-4 rounded-2xl border font-bold text-sm outline-none transition-all ${
                       isDark ? "bg-black/40 border-white/10 text-white focus:border-blue-500" : "bg-slate-50 border-slate-200 focus:border-blue-500"
                     }`}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirm(!showConfirm)}
-                    className={`absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-all ${
-                      isDark ? "text-slate-600 hover:text-white" : "text-slate-400 hover:text-slate-900"
-                    }`}
-                  >
-                    {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
               </div>
 
@@ -173,7 +132,7 @@ const ResetPassword = () => {
                     initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ opacity: 0 }}
                     className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-[10px] font-black uppercase"
                   >
-                    <AlertCircle size={14} /> {localError || error?.data?.message}
+                    <AlertCircle size={14} /> {localError || error?.data?.message || "Verification Failed"}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -189,7 +148,7 @@ const ResetPassword = () => {
                 {isLoading ? (
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
-                  <>Deploy Key <Zap size={16} className="fill-current" /></>
+                  <>Send Link <Zap size={16} className="fill-current" /></>
                 )}
               </button>
             </motion.form>
@@ -197,11 +156,10 @@ const ResetPassword = () => {
         </AnimatePresence>
 
         <p className="mt-8 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">
-          Security Protocol Enabled • Version 2.0.4
+          Recovery Protocol v2.0 • Secure Transmission
         </p>
       </div>
     </div>
   );
 };
 
-export default ResetPassword;

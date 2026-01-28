@@ -6,186 +6,145 @@ import { generateShortCode } from "../utils/generateShortCode.js";
 import { checkUrlSecurity } from "../utils/secureScanner.js";
 import { analyzeUrlRisk } from "../utils/urlRiskAnalyzer.js";
 import SecurityLog from "../models/securityLog_model.js";
-
+import { getSecurityMetadata } from "../utils/securityHelper.js";
 import redis from "../config/redish.js";
 export const createShortUrl = async (req, res, next) => {
   try {
     const { originalUrl, customAlias, expiresAt } = req.body;
 
+    // 1. Initial Validation
     if (!originalUrl || !validateUrl(originalUrl)) {
       return next(new ApiError(400, "Invalid URL"));
     }
 
+    // 2. Expiry Calculation
     const now = Date.now();
     const MAX_EXPIRY = 7 * 24 * 60 * 60 * 1000;
     const DEFAULT_EXPIRY = 5 * 24 * 60 * 60 * 1000;
-
-  
     let expiresAtFinal;
+
     if (expiresAt) {
       const requested = new Date(expiresAt).getTime();
       if (isNaN(requested) || requested <= now)
-        return next(new ApiError(400, "Expiry must be within 7 days"));
+        return next(new ApiError(400, "Expiry must be in the future"));
       if (requested - now > MAX_EXPIRY)
         return next(new ApiError(400, "Expiry cannot exceed 7 days"));
-
       expiresAtFinal = new Date(requested);
     } else {
       expiresAtFinal = new Date(now + DEFAULT_EXPIRY);
     }
 
-   
-    let shortCode = null;
+    // 3. Prepare shortCode (Custom or Generated)
+    let shortCode;
     let isCustom = false;
 
     if (customAlias) {
-      const alias = customAlias.trim().toLowerCase();
-
-      if (!validateAlias(alias)) {
-        return next(new ApiError(400, "Invalid alias format."));
-      }
-
-      const exists = await UrlCollection.exists({ shortCode: alias });
-      if (exists) {
-        return next(new ApiError(409, "Alias already taken"));
-      }
-
-      shortCode = alias;
+      shortCode = customAlias.trim().toLowerCase();
+      if (!validateAlias(shortCode)) return next(new ApiError(400, "Invalid alias format."));
+      
+      const exists = await UrlCollection.exists({ shortCode });
+      if (exists) return next(new ApiError(409, "Alias already taken"));
       isCustom = true;
+    } else {
+      // Pre-check loop to avoid collisions before creation
+      do {
+        shortCode = generateShortCode();
+      } while (await UrlCollection.exists({ shortCode }));
     }
 
-   
-    const adminFlag = await UrlCollection.exists({
-      originalUrl,
-      $or: [{ deletedByRole: "admin" }, { disabledByRole: "admin" }],
-    });
-
-    if (adminFlag) {
-      return next(new ApiError(403, "This URL was blocked by admin."));
-    }
-
-  
-    const blockedBefore = await SecurityLog.exists({
-      originalUrl,
-      type: { $in: ["high_risk_blocked", "critical_blocked"] },
-    });
-
-    if (blockedBefore) {
-      return next(new ApiError(400, "This URL was previously flagged as harmful."));
-    }
-
-   
-    const riskScore = analyzeUrlRisk(originalUrl);
-
-    if (riskScore >= 100) {
-      await SecurityLog.create({
-        type: "critical_blocked",
+    // 4. Security & Admin Blocks
+    // We run these together to avoid multiple individual queries
+    const [adminBlocked, securityLogged] = await Promise.all([
+      UrlCollection.exists({
         originalUrl,
-        shortCode,
-        user: req.userId,
-        metadata: { riskScore, ip: req.ip },
-      });
-      return next(new ApiError(400, "Critical malicious URL detected."));
-    }
+        $or: [{ deletedByRole: "admin" }, { disabledByRole: "admin" }],
+      }),
+      SecurityLog.exists({
+        originalUrl,
+        type: { $in: ["high_risk_blocked", "critical_blocked"] },
+      })
+    ]);
 
+    if (adminBlocked) return next(new ApiError(403, "URL blocked by admin."));
+    if (securityLogged) return next(new ApiError(400, "URL previously flagged as harmful."));
+
+    // 5. Risk Analysis & Logging
+    const riskScore = analyzeUrlRisk(originalUrl);
     if (riskScore >= 60) {
       await SecurityLog.create({
-        type: "high_risk_blocked",
+        type: riskScore >= 100 ? "critical_blocked" : "high_risk_blocked",
         originalUrl,
         shortCode,
         user: req.userId,
-        metadata: { riskScore, ip: req.ip },
+        metadata: getSecurityMetadata(req, { riskScore })
       });
-      return next(new ApiError(400, "High-risk URL blocked."));
+      return next(new ApiError(400, "URL blocked due to high risk."));
     }
 
-    const isSuspicious = riskScore >= 30;
-
-   
+    // 6. Security Scanning (Check Cache First)
     const twoWeekMs = 14 * 24 * 60 * 60 * 1000;
-
-    const urlDoc = await UrlCollection.findOneAndUpdate(
-      { originalUrl },
-      { $setOnInsert: { originalUrl } },
-      { upsert: true, new: true }
-    );
-
-  
-    let scanResult;
-    const cache = urlDoc.scanCache;
-
-    const cacheValid =
-      cache &&
-      cache.safe !== null &&
-      cache.checkedAt &&
-      now - new Date(cache.checkedAt).getTime() < twoWeekMs;
-
-    if (cacheValid) {
-      scanResult = {
-        safe: cache.safe,
-        source: cache.source,
-        fromCache: true,
-      };
-    } else {
+    // We look for any existing document for this URL to see its scan history
+    const existingDoc = await UrlCollection.findOne({ originalUrl }).select("scanCache");
     
+    let scanResult;
+    const cache = existingDoc?.scanCache;
+
+    if (cache?.safe !== null && cache?.checkedAt && (now - new Date(cache.checkedAt).getTime() < twoWeekMs)) {
+      scanResult = { safe: cache.safe, source: cache.source, fromCache: true };
+    } else {
+      // Actual API call only if needed
       scanResult = await checkUrlSecurity(originalUrl);
 
-      if (scanResult.rateLimited) {
-        return next(
-          new ApiError(
-            503,
-            "Security scanning service is rate-limited. Try again later."
-          )
-        );
+      if (scanResult.rateLimited) return next(new ApiError(503, "Security service busy."));
+      if (!scanResult.safe){await SecurityLog.create({
+          type: "unsafe_scan_blocked",
+          originalUrl,
+          shortCode,
+          user: req.userId,
+          metadata: getSecurityMetadata(req, { 
+            safe: false, 
+            scannerUsed: scanResult.source 
+          }),
+        });
+        return next(new ApiError(400, "Unsafe URL detected."));
       }
 
-      await UrlCollection.updateMany(
-        { originalUrl },
-        {
-          scanCache: {
-            safe: scanResult.safe,
-            checkedAt: new Date(),
-            source: scanResult.source ?? "safe_browsing",
-          },
-        }
-      );
-
+      // Optional: Log the new successful scan
       await SecurityLog.create({
         type: "scan_success",
         originalUrl,
         shortCode,
         user: req.userId,
-        metadata: {
-          safe: scanResult.safe,
+        metadata: getSecurityMetadata(req, { 
+          safe: true, 
           scannerUsed: scanResult.source,
-          ip: req.ip,
-        },
+          ip: req.ip 
+        }),
       });
-
-      if (!scanResult.safe) {
-        return next(new ApiError(400, "Unsafe or malicious URL detected."));
-      }
     }
 
-    
-    if (!shortCode) {
-      do {
-        shortCode = generateShortCode();
-      } while (await UrlCollection.exists({ shortCode }));
-    }
-    await UrlCollection.create({
+    // 7. SINGLE ATOMIC SAVE
+    // This creates the document with ALL data at once. No "null" shortCodes.
+    const newUrl = await UrlCollection.create({
       originalUrl,
       shortCode,
       owner: req.userId,
       expiresAt: expiresAtFinal,
       isCustom,
-      ...(isSuspicious ? { abuseScore: 1, lastAbuseAt: new Date() } : {}),
+      scanCache: {
+        safe: scanResult.safe,
+        checkedAt: new Date(),
+        source: scanResult.source ?? "safe_browsing",
+      },
+      ...(riskScore >= 30 ? { abuseScore: 1, lastAbuseAt: new Date() } : {}),
     });
 
     return res.status(201).json({
-      shortUrl: `${process.env.CLIENT_URL}/${shortCode}`,
+      shortUrl: `${process.env.CLIENT_URL}/${newUrl.shortCode}`,
     });
+
   } catch (err) {
+    if (err.code === 11000) return next(new ApiError(409, "Collision detected, please try again."));
     next(err);
   }
 };

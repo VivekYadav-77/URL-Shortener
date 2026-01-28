@@ -15,12 +15,13 @@ import {
 import authMiddleware from "../middleware/auth_middleware.js";
 import { createUrlLimiter } from "../middleware/rateLimiting_middleware.js";
 import { getUrlHistory } from "../controllers/getUrlHistory_controller.js";
+import { criticalActionGuard } from "../middleware/criticalActionGuard.js";
 const url_routes = express.Router();
-url_routes.post("/", authMiddleware, createUrlLimiter,validate(createUrlSchema),createShortUrl);
+url_routes.post("/", authMiddleware,criticalActionGuard,createUrlLimiter,validate(createUrlSchema),createShortUrl);
 url_routes.get("/history",authMiddleware,getUrlHistory)
 url_routes.get("/my", authMiddleware, getMyUrls);
 url_routes.get("/:id", authMiddleware, getUrlById);
-url_routes.patch("/:id", authMiddleware, updateUrl);
+url_routes.patch("/:id", authMiddleware,criticalActionGuard, updateUrl);
 url_routes.get("/:id/stats", authMiddleware, getUrlStats);
-url_routes.delete("/:id", authMiddleware, deleteUrl);
+url_routes.delete("/:id", authMiddleware,criticalActionGuard, deleteUrl);
 export default url_routes;

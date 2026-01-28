@@ -88,6 +88,27 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ["SecurityLogs", "HighRiskLogs"],
     }),
+    getBlockedUsers: builder.query({
+      query: () => "/admin/blocked-users",
+      providesTags: ["User"],
+    }),
+
+    blockUser: builder.mutation({
+      query: ({ id, reason }) => ({
+        url: `/admin/users/${id}/block`,
+        method: "PATCH",
+        body: { reason },
+      }),
+      invalidatesTags: ["User"],
+    }),
+
+    unblockUser: builder.mutation({
+      query: (id) => ({
+        url: `/admin/users/${id}/unblock`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["User"],
+    }),
   }),
 });
 
@@ -104,5 +125,8 @@ export const {
   useAdminDeleteUrlMutation,
   useGetSecurityLogsQuery,
   useGetHighRiskLogsQuery,
-  useDeleteSecurityLogsMutation
+  useDeleteSecurityLogsMutation,
+   useGetBlockedUsersQuery,
+    useBlockUserMutation,
+    useUnblockUserMutation,
 } = adminApi;

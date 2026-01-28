@@ -47,6 +47,19 @@ const userSchema = new mongoose.Schema(
       type: Date,
       select: false,
     },
+    status: {
+    type: String,
+    enum: ["active", "blocked"],
+    default: "active",
+  },
+  blockedAt: {
+    type: Date,
+    default: null,
+  },
+  reason: {
+    type: String,
+    default: null,
+  }
   },
   { timestamps: true },
 );

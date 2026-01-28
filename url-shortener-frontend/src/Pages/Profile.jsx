@@ -58,8 +58,8 @@ const Profile = () => {
     e.preventDefault();
     if (name.trim() === user.name) return showFeedback("warning", "Name is already up to date");
     try {
-      const res = await updateMe({ name }).unwrap();
-      dispatch(setUser(res));
+       await updateMe({ name }).unwrap();
+      //dispatch(setUser(res));
       showFeedback("success", "Profile identity updated successfully");
     } catch (err) {
       showFeedback("error", err?.data?.message || "Profile update failed");

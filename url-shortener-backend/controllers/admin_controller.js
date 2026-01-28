@@ -1,6 +1,7 @@
 import ApiError from "../utils/ApiError.js";
 import UrlCollection from "../models/url_model.js";
 import UserCollection from "../models/user_model.js";
+import RefreshTokenCollection from "../models/statefull_model.js";
 import mongoose from "mongoose";
 import redis from "../config/redish.js";
 export const getAdminStats = async (req, res, next) => {
@@ -242,3 +243,73 @@ if (!id || !mongoose.Types.ObjectId.isValid(id)) {
 
 
 }
+export const blockUser = async (req, res, next) => {
+  const { id } = req.params;
+  const { reason } = req.body;
+
+  // 1. Find user
+  const user = await UserCollection.findById(id);
+  if (!user) return next(new ApiError(404, "User not found"));
+
+  if (user.role === "admin") {
+    return next(new ApiError(403, "Admins cannot be blocked."));
+  }
+
+  // 2. Update status (DO NOT DELETE THE USER)
+  user.status = "blocked";
+  user.blockedAt = new Date();
+  user.reason = reason || "No reason provided";
+  await user.save();
+
+
+ 
+await RefreshTokenCollection.updateMany(
+    { user: id, revoked: false }, // Find all active tokens for this user
+    { 
+      $set: { 
+        revoked: true, 
+        reason: "User account blocked by admin" 
+      } 
+    }
+  );
+
+  res.status(200).json({ 
+    success: true, 
+    message: "User blocked. All sessions have been terminated." 
+  });
+};
+// 2. UNBLOCK USER
+export const unblockUser = async (req, res, next) => {
+  const { id } = req.params;
+
+  const user = await UserCollection.findByIdAndUpdate(
+    id,
+    { 
+      status: "active", 
+      blockedAt: null, 
+      reason: null 
+    },
+    { new: true }
+  );
+
+  if (!user) return next(new ApiError(404, "User not found"));
+
+  res.status(200).json({ 
+    success: true, 
+    message: "User account has been reinstated." 
+  });
+};
+
+// 3. GET ALL BLOCKED USERS
+export const getBlockedUsers = async (req, res, next) => {
+  // Finds users where status is specifically 'blocked'
+  const blockedUsers = await UserCollection.find({ status: "blocked" })
+    .select("+email +status +blockedAt +reason")
+    .sort({ blockedAt: -1 });
+
+  res.status(200).json({
+    success: true,
+    count: blockedUsers.length,
+    data: blockedUsers
+  });
+};

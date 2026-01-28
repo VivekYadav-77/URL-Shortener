@@ -48,11 +48,11 @@ export const trafficAnomalyGuard = async (req, res, next) => {
 
 
 async function markAbuse(shortCode, amount) {
-  const url = await UrlCollection.findOne({ shortCode });
-
-  if (!url) return;
-
-  url.abuseScore += amount;
-  url.lastAbuseAt = new Date();
-  await url.save();
+  await UrlCollection.findOneAndUpdate(
+    { shortCode },
+    { 
+      $inc: { abuseScore: amount }, 
+      $set: { lastAbuseAt: new Date() } 
+    }
+  );
 }

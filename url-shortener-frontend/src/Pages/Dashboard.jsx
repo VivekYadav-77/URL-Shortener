@@ -28,7 +28,8 @@ import {
   Clock,
   Link as LinkIcon,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  ShieldAlert // Added for security context
 } from "lucide-react";
 
 const UserDashboard = () => {
@@ -39,9 +40,14 @@ const UserDashboard = () => {
   const { data: urls = [], isLoading, isError } = useGetMyUrlsQuery();
   const [updateUrl] = useUpdateUrlMutation();
   const [deleteUrl] = useDeleteUrlMutation();
+  
   const [feedback, setFeedback] = useState(null);
   const [selectedUrl, setSelectedUrl] = useState(null);
+  
+  // NEW: State to track which ID is flagged for deletion
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
+  const f = "/"
   const toast = (msg, type = "success") => {
     setFeedback({ msg, type });
     setTimeout(() => setFeedback(null), 2500);
@@ -64,8 +70,15 @@ const UserDashboard = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm("Permanently delete this link?")) return;
+  // UPDATED: Instead of confirming here, we just open the modal
+  const handleDeleteRequest = (id) => {
+    setDeleteConfirmId(id);
+  };
+
+  // NEW: The actual execution of the delete command
+  const executeDelete = async () => {
+    const id = deleteConfirmId;
+    setDeleteConfirmId(null); // Close modal immediately for UX
     try {
       await deleteUrl(id).unwrap();
       toast("Link removed forever", "success");
@@ -90,7 +103,43 @@ const UserDashboard = () => {
           </div>
         )}
 
-        {/* URL DETAIL MODAL (GLASSMORPHISM) */}
+        {/* NEW: DELETE CONFIRMATION MODAL */}
+        {deleteConfirmId && (
+          <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+            <div className={`w-full max-w-md rounded-[2.5rem] p-10 shadow-2xl border transition-all scale-in-center text-center ${
+              isDark ? "bg-[#0F0F0F] border-white/10 shadow-black" : "bg-white border-gray-200 shadow-xl"
+            }`}>
+              <div className="flex flex-col items-center">
+                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mb-6">
+                  <ShieldAlert size={40} />
+                </div>
+                <h3 className="text-2xl font-black uppercase tracking-tighter mb-2">Confirm Destruction</h3>
+                <p className={`text-sm font-medium mb-8 leading-relaxed ${isDark ? "text-gray-400" : "text-gray-500"}`}>
+                  This action is irreversible. The link and all associated tracking data will be purged from our servers.
+                </p>
+                
+                <div className="flex flex-col w-full gap-3">
+                  <button
+                    onClick={executeDelete}
+                    className="w-full bg-red-600 hover:bg-red-500 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-red-600/20"
+                  >
+                    Yes, Purge Link
+                  </button>
+                  <button
+                    onClick={() => setDeleteConfirmId(null)}
+                    className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 border ${
+                      isDark ? "border-white/10 text-white hover:bg-white/5" : "border-gray-200 text-gray-900 hover:bg-gray-50"
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* URL DETAIL MODAL (Existing) */}
         {selectedUrl && (
           <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
             <div className={`w-full max-w-xl rounded-[2.5rem] p-8 md:p-10 shadow-2xl border transition-all scale-in-center ${
@@ -205,7 +254,7 @@ const UserDashboard = () => {
                             rel="noopener noreferrer"
                             className="text-2xl font-black text-blue-500 hover:text-blue-400 transition-colors break-all"
                           >
-                            {import.meta.env.VITE_B_LOCATION}{url.shortCode}
+                            {import.meta.env.VITE_B_LOCATION}{f}{url.shortCode}
                           </a>
                           <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${
                             isDark ? "bg-white/5 border-white/10 text-gray-500" : "bg-gray-100 border-gray-200 text-gray-400"
@@ -260,7 +309,7 @@ const UserDashboard = () => {
                           icon={<BarChart2 size={18} />} 
                           label="Stats" 
                           isDark={isDark} 
-                          color="indigo" 
+                          color="yellow" 
                         />
                         <ActionButton 
                           onClick={() => handleToggle(url)} 
@@ -270,7 +319,7 @@ const UserDashboard = () => {
                           color={url.isActive ? "yellow" : "green"} 
                         />
                         <ActionButton 
-                          onClick={() => handleDelete(url._id)} 
+                          onClick={() => handleDeleteRequest(url._id)} // CHANGED
                           icon={<Trash2 size={18} />} 
                           label="Delete" 
                           isDark={isDark} 
@@ -289,7 +338,6 @@ const UserDashboard = () => {
     </UserLayout>
   );
 };
-
 // --- HELPER COMPONENTS ---
 
 const StatusBadge = ({ label, isDark }) => {

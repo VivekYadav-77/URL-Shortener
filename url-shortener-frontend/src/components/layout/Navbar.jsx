@@ -65,7 +65,7 @@ const Navbar = () => {
           
           {/* USER PROFILE PILL */}
           <div 
-            onClick={() => user?.role === "admin" ? navigate("/admin") : navigate("/profile")}
+            onClick={() => user?.role === "admin" ? navigate("/admin/profile") : navigate("/profile")}
             className={`
               flex items-center gap-3 pl-2 pr-4 py-1.5 rounded-2xl cursor-pointer transition-all active:scale-95
               border ${isDark ? "bg-white/5 border-white/10 hover:bg-white/10" : "bg-gray-100 border-gray-200 hover:bg-gray-200"}

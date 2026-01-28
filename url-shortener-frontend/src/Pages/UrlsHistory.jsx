@@ -25,7 +25,7 @@ const History = () => {
   // Modal State
   const [showModal, setShowModal] = useState(false);
   const [modalUrl, setModalUrl] = useState("");
-
+  const f = "/"
   const filtered = urls.filter(
     (u) => activeTab === "all" || u.status === activeTab,
   );
@@ -114,7 +114,7 @@ const History = () => {
                           rel="noopener noreferrer"
                           className="text-2xl font-black text-blue-500 hover:text-blue-400 transition-colors break-all"
                         >
-                          {import.meta.env.VITE_B_LOCATION}{url.shortCode}
+                          {import.meta.env.VITE_B_LOCATION}{f}{url.shortCode}
                         </a>
                         <StatusBadge status={url.status} isDark={isDark} />
                       </div>

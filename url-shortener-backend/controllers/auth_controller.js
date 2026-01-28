@@ -45,13 +45,11 @@ export const register = async (req, res, next) => {
 //Login
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-console.log("in the login")
   if (!email.endsWith("@gmail.com")) {
     return next(new ApiError(400, "Only Gmail accounts are allowed"));
   }
 
   const user = await UserCollection.findOne({ email }).select("+password");
-  console.log("user",user)
 
   if (!user || !(await user.comparePassword(password))) {
     console.log("in the credentials")
@@ -141,6 +139,7 @@ export const verifyEmail = async (req, res, next) => {
 // FORGOT PASSWORD
 export const forgotPassword = async (req, res, next) => {
   const { email } = req.body;
+  console.log("from login email",email)
   const user = await UserCollection.findOne({ email });
 
   if (!user) return next(new ApiError(404, "Email not found"));

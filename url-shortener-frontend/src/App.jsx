@@ -20,11 +20,15 @@ import AdminAbuseUrls from "./Pages/AdminAbuseUrl";
 import AdminSecurityLogsPage from "./Pages/AdminSecurityLogsPage";
 import VerifyEmail from "./Pages/VerifyEmail";
 import ResetPassword from "./Pages/ResetPassword";
-import ForgotPassword from "./Pages/ForgotPassword";
+import SpaceNotFound from "./Pages/NotFoundPage";
+import AdminBlockedUsersPage from "./Pages/AdminBlockedUsers";
+import {ForgotPassword} from "./Pages/ForgotPassword"
+import AboutUs from "./Pages/Aboutus";
+import AdminProfile from "./Pages/AdminProfilePage";
 function App() {
   const dispatch = useAppDispatch();
 
-  const { data, isSuccess, isError, isFetching } = useGetMeQuery();
+  const { data, isSuccess, isError, isloading } = useGetMeQuery();
 
   useEffect(() => {
     if (isSuccess && data) {
@@ -36,7 +40,7 @@ function App() {
     }
     dispatch(markAuthChecked());
   }, [isSuccess, isError, data, dispatch]);
-  if (isFetching) {
+  if (isloading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex-col gap-4 w-full flex items-center justify-center">
@@ -54,7 +58,9 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/forgot-password" element={<ForgotPassword/>} />
+        <Route path="/aboutus" element={<AboutUs/>} />
+
 
         {/*AdminRoute */}
         <Route element={<AdminRoute />}>
@@ -64,6 +70,9 @@ function App() {
           <Route path="/admin/urls" element={<AdminUrls />} />
           <Route path="/admin/abuse" element={<AdminAbuseUrls />} />
           <Route path="/admin/logs" element={<AdminSecurityLogsPage/>} />
+          <Route path ="/admin/blockeduser"element={<AdminBlockedUsersPage/>}/>
+          <Route path="/admin/profile" element={<AdminProfile />} />
+
         </Route>
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
@@ -73,6 +82,7 @@ function App() {
           <Route path="/urls/:id/stats" element={<UrlStats />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
+        <Route path="*" element={<SpaceNotFound/>} />
       </Routes>
     </BrowserRouter>
   );
