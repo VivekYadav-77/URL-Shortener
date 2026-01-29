@@ -34,4 +34,4 @@ const LogoIcon = () => (
     />
   </svg>
 );
-export default LogoIcon
+export default LogoIcon;

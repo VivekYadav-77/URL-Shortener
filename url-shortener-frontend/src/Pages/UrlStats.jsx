@@ -1,18 +1,18 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useGetUrlStatsQuery } from "../Features/urls/urlApi";
 import UserLayout from "./UserLayout";
-import { 
-  BarChart2, 
-  Clock, 
-  AlertTriangle, 
-  ArrowLeft, 
-  Activity, 
-  ShieldAlert, 
+import {
+  BarChart2,
+  Clock,
+  AlertTriangle,
+  ArrowLeft,
+  Activity,
+  ShieldAlert,
   ExternalLink,
   Calendar,
   Share2,
   Sparkles,
-  Zap
+  Zap,
 } from "lucide-react";
 import { useTheme } from "../App/themeStore";
 
@@ -26,22 +26,29 @@ const UrlStats = () => {
 
   return (
     <UserLayout>
-      <div className={`min-h-screen px-4 md:px-8 py-10 transition-colors duration-500 ${isDark ? "bg-[#050505] text-white" : "bg-gray-50 text-gray-900"}`}>
+      <div
+        className={`min-h-screen px-4 md:px-8 py-10 transition-colors duration-500 ${isDark ? "bg-[#050505] text-white" : "bg-gray-50 text-gray-900"}`}
+      >
         <main className="max-w-5xl mx-auto space-y-10">
-          
           {/* TOP NAVIGATION BAR */}
           <div className="flex items-center justify-between">
             <button
               onClick={() => navigate(-1)}
               className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm transition-all active:scale-95 ${
-                isDark ? "bg-white/5 border border-white/10 hover:bg-white/10" : "bg-white border border-gray-200 shadow-sm hover:bg-gray-50"
+                isDark
+                  ? "bg-white/5 border border-white/10 hover:bg-white/10"
+                  : "bg-white border border-gray-200 shadow-sm hover:bg-gray-50"
               }`}
             >
               <ArrowLeft size={18} /> Back to Dashboard
             </button>
-            <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
-              isDark ? "bg-blue-500/10 border-blue-500/30 text-blue-400" : "bg-blue-50 border-blue-200 text-blue-600"
-            }`}>
+            <div
+              className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${
+                isDark
+                  ? "bg-blue-500/10 border-blue-500/30 text-blue-400"
+                  : "bg-blue-50 border-blue-200 text-blue-600"
+              }`}
+            >
               Asset ID: {id?.slice(-8).toUpperCase()}
             </div>
           </div>
@@ -53,9 +60,14 @@ const UrlStats = () => {
                 <Sparkles size={12} /> Analytics Engine
               </div>
               <h2 className="text-5xl font-black tracking-tighter mb-2">
-                Traffic <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Inspector</span>
+                Traffic{" "}
+                <span className="bg-linear-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+                  Inspector
+                </span>
               </h2>
-              <p className={`text-lg font-medium ${isDark ? "text-gray-500" : "text-gray-400"}`}>
+              <p
+                className={`text-lg font-medium ${isDark ? "text-gray-500" : "text-gray-400"}`}
+              >
                 Real-time performance metrics and link health.
               </p>
             </div>
@@ -65,27 +77,38 @@ const UrlStats = () => {
           {isLoading && (
             <div className="p-20 text-center flex flex-col items-center gap-4">
               <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              <p className="font-bold text-gray-500 animate-pulse uppercase tracking-widest text-xs">Syncing Link Data...</p>
+              <p className="font-bold text-gray-500 animate-pulse uppercase tracking-widest text-xs">
+                Syncing Link Data...
+              </p>
             </div>
           )}
 
           {isError && (
             <div className="p-10 rounded-[2.5rem] border border-red-500/20 bg-red-500/5 flex flex-col items-center gap-3 text-red-500">
               <AlertTriangle size={40} className="opacity-50" />
-              <p className="font-black uppercase tracking-widest">Statistical Fetch Failed</p>
+              <p className="font-black uppercase tracking-widest">
+                Statistical Fetch Failed
+              </p>
             </div>
           )}
 
           {data && (
             <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              
               {/* PRIMARY URL CARD */}
-              <div className={`relative overflow-hidden p-8 md:p-10 rounded-[2.5rem] border shadow-2xl ${
-                isDark ? "bg-[#0A0A0A] border-white/10" : "bg-white border-gray-200 shadow-sm"
-              }`}>
+              <div
+                className={`relative overflow-hidden p-8 md:p-10 rounded-[2.5rem] border shadow-2xl ${
+                  isDark
+                    ? "bg-[#0A0A0A] border-white/10"
+                    : "bg-white border-gray-200 shadow-sm"
+                }`}
+              >
                 <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                   <div className="flex-1 min-w-0">
-                    <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-3 ${isDark ? "text-gray-600" : "text-gray-400"}`}>Shortened Endpoint</p>
+                    <p
+                      className={`text-[10px] font-black uppercase tracking-[0.2em] mb-3 ${isDark ? "text-gray-600" : "text-gray-400"}`}
+                    >
+                      Shortened Endpoint
+                    </p>
                     <div className="flex items-center gap-3">
                       <a
                         href={`${import.meta.env.VITE_B_LOCATION}/${data.shortCode}`}
@@ -98,8 +121,7 @@ const UrlStats = () => {
                     </div>
                   </div>
                   <div className="flex gap-3">
-                   
-                    <a 
+                    <a
                       href={`${import.meta.env.VITE_B_LOCATION}/${data.shortCode}`}
                       target="_blank"
                       className="flex items-center gap-2 px-6 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl shadow-blue-600/20"
@@ -132,7 +154,11 @@ const UrlStats = () => {
                   isDark={isDark}
                   icon={<Clock size={20} />}
                   label="Expiration"
-                  value={data.expiresAt ? new Date(data.expiresAt).toLocaleDateString() : "Permanent"}
+                  value={
+                    data.expiresAt
+                      ? new Date(data.expiresAt).toLocaleDateString()
+                      : "Permanent"
+                  }
                   color="yellow"
                 />
                 <StatBox
@@ -140,43 +166,91 @@ const UrlStats = () => {
                   icon={<ShieldAlert size={20} />}
                   label="Infrastructure"
                   value={data.isActive ? "Active" : "Offline"}
-                  statusColor={data.isActive ? "text-green-500" : "text-red-500"}
+                  statusColor={
+                    data.isActive ? "text-green-500" : "text-red-500"
+                  }
                   color={data.isActive ? "green" : "red"}
                 />
               </div>
 
               {/* HEALTH STATUS INDICATORS */}
               <div className="flex flex-wrap gap-4">
-                <HealthBadge status={data.status} label={data.status} color={data.status === 'active' ? 'green' : 'red'} isDark={isDark} />
+                <HealthBadge
+                  status={data.status}
+                  label={data.status}
+                  color={data.status === "active" ? "green" : "red"}
+                  isDark={isDark}
+                />
                 {!data.isActive && data.disabledByRole && (
-                  <HealthBadge status="alert" label={`Suspended by ${data.disabledByRole}`} color="orange" isDark={isDark} />
+                  <HealthBadge
+                    status="alert"
+                    label={`Suspended by ${data.disabledByRole}`}
+                    color="orange"
+                    isDark={isDark}
+                  />
                 )}
-                <HealthBadge status="shield" label={`Safety Score: ${100 - (data.abuseScore || 0)}%`} color="indigo" isDark={isDark} />
+                <HealthBadge
+                  status="shield"
+                  label={`Safety Score: ${100 - (data.abuseScore || 0)}%`}
+                  color="indigo"
+                  isDark={isDark}
+                />
               </div>
 
               {/* DETAILED TECHNICAL LOGS */}
-              <div className={`p-8 md:p-10 rounded-[2.5rem] border ${
-                isDark ? "bg-[#0A0A0A] border-white/10" : "bg-white border-gray-200"
-              }`}>
+              <div
+                className={`p-8 md:p-10 rounded-[2.5rem] border ${
+                  isDark
+                    ? "bg-[#0A0A0A] border-white/10"
+                    : "bg-white border-gray-200"
+                }`}
+              >
                 <div className="flex items-center gap-3 mb-8">
-                  <div className={`p-3 rounded-2xl ${isDark ? "bg-purple-500/10 text-purple-500" : "bg-purple-50 text-purple-600"}`}>
+                  <div
+                    className={`p-3 rounded-2xl ${isDark ? "bg-purple-500/10 text-purple-500" : "bg-purple-50 text-purple-600"}`}
+                  >
                     <Zap size={20} />
                   </div>
-                  <h3 className="text-2xl font-black tracking-tight">Technical Timeline</h3>
+                  <h3 className="text-2xl font-black tracking-tight">
+                    Technical Timeline
+                  </h3>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-6">
-                    <DetailItem label="Disabled At" value={data.disabledAt ? new Date(data.disabledAt).toLocaleString() : "---"} isDark={isDark} />
-                    <DetailItem label="Disabled By" value={data.disabledByRole || "None"} isDark={isDark} />
+                    <DetailItem
+                      label="Disabled At"
+                      value={
+                        data.disabledAt
+                          ? new Date(data.disabledAt).toLocaleString()
+                          : "---"
+                      }
+                      isDark={isDark}
+                    />
+                    <DetailItem
+                      label="Disabled By"
+                      value={data.disabledByRole || "None"}
+                      isDark={isDark}
+                    />
                   </div>
                   <div className="space-y-6">
-                    <DetailItem label="Deleted At" value={data.deletedAt ? new Date(data.deletedAt).toLocaleString() : "---"} isDark={isDark} />
-                    <DetailItem label="Deleted By" value={data.deletedByRole || "None"} isDark={isDark} />
+                    <DetailItem
+                      label="Deleted At"
+                      value={
+                        data.deletedAt
+                          ? new Date(data.deletedAt).toLocaleString()
+                          : "---"
+                      }
+                      isDark={isDark}
+                    />
+                    <DetailItem
+                      label="Deleted By"
+                      value={data.deletedByRole || "None"}
+                      isDark={isDark}
+                    />
                   </div>
                 </div>
               </div>
-
             </div>
           )}
         </main>
@@ -196,14 +270,26 @@ const StatBox = ({ icon, label, value, color, statusColor, isDark }) => {
   };
 
   return (
-    <div className={`p-6 rounded-3xl border transition-all duration-300 hover:scale-[1.03] ${
-      isDark ? "bg-white/5 border-white/5" : "bg-white border-gray-100 shadow-sm"
-    }`}>
+    <div
+      className={`p-6 rounded-3xl border transition-all duration-300 hover:scale-[1.03] ${
+        isDark
+          ? "bg-white/5 border-white/5"
+          : "bg-white border-gray-100 shadow-sm"
+      }`}
+    >
       <div className={`inline-flex p-3 rounded-2xl mb-4 ${colors[color]}`}>
         {icon}
       </div>
-      <p className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isDark ? "text-gray-600" : "text-gray-400"}`}>{label}</p>
-      <p className={`text-2xl font-black tracking-tight ${statusColor || (isDark ? "text-white" : "text-gray-900")}`}>{value}</p>
+      <p
+        className={`text-[10px] font-black uppercase tracking-widest mb-1 ${isDark ? "text-gray-600" : "text-gray-400"}`}
+      >
+        {label}
+      </p>
+      <p
+        className={`text-2xl font-black tracking-tight ${statusColor || (isDark ? "text-white" : "text-gray-900")}`}
+      >
+        {value}
+      </p>
     </div>
   );
 };
@@ -218,7 +304,9 @@ const HealthBadge = ({ label, color, isDark }) => {
   };
 
   return (
-    <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 ${styles[color]}`}>
+    <span
+      className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 ${styles[color]}`}
+    >
       <div className={`h-1.5 w-1.5 rounded-full animate-pulse bg-current`} />
       {label}
     </span>
@@ -226,11 +314,23 @@ const HealthBadge = ({ label, color, isDark }) => {
 };
 
 const DetailItem = ({ label, value, isDark }) => (
-  <div className={`group flex items-center justify-between p-4 rounded-2xl border transition-all ${
-    isDark ? "bg-black/20 border-white/5 hover:bg-black/40" : "bg-gray-50 border-gray-100 hover:bg-gray-100"
-  }`}>
-    <span className={`text-xs font-bold uppercase tracking-widest ${isDark ? "text-gray-500" : "text-gray-400"}`}>{label}</span>
-    <span className={`text-xs font-black ${isDark ? "text-gray-300" : "text-gray-700"}`}>{value}</span>
+  <div
+    className={`group flex items-center justify-between p-4 rounded-2xl border transition-all ${
+      isDark
+        ? "bg-black/20 border-white/5 hover:bg-black/40"
+        : "bg-gray-50 border-gray-100 hover:bg-gray-100"
+    }`}
+  >
+    <span
+      className={`text-xs font-bold uppercase tracking-widest ${isDark ? "text-gray-500" : "text-gray-400"}`}
+    >
+      {label}
+    </span>
+    <span
+      className={`text-xs font-black ${isDark ? "text-gray-300" : "text-gray-700"}`}
+    >
+      {value}
+    </span>
   </div>
 );
 

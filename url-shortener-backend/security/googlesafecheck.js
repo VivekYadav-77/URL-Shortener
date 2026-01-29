@@ -1,5 +1,5 @@
 import axios from "axios";
-export const isUrlSafe  = async (url) => {
+export const isUrlSafe = async (url) => {
   try {
     if (!url || typeof url !== "string") {
       return {
@@ -23,7 +23,8 @@ export const isUrlSafe  = async (url) => {
     }
 
     const endpoint =
-      "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" + API_KEY;
+      "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" +
+      API_KEY;
 
     const body = {
       client: {
@@ -44,7 +45,7 @@ export const isUrlSafe  = async (url) => {
     };
 
     const response = await axios.post(endpoint, body, {
-      timeout: 4000, 
+      timeout: 4000,
     });
 
     if (!response.data || !response.data.matches) {
@@ -56,7 +57,7 @@ export const isUrlSafe  = async (url) => {
       };
     }
 
-    const match = response.data.matches[0]; 
+    const match = response.data.matches[0];
 
     return {
       safe: false,
@@ -96,4 +97,3 @@ export const isUrlSafe  = async (url) => {
     };
   }
 };
-

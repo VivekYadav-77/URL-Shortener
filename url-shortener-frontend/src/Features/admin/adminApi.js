@@ -7,7 +7,6 @@ export const adminApi = createApi({
   tagTypes: ["AdminUrls", "Users", "UserProfile", "UserUrls", "Abuse"],
 
   endpoints: (builder) => ({
-
     getAdminStats: builder.query({
       query: () => "/admin/stats",
       keepUnusedDataFor: 600,
@@ -51,7 +50,7 @@ export const adminApi = createApi({
         url: `/admin/url/${id}/enable`,
         method: "PATCH",
       }),
-      invalidatesTags: ["AdminUrls", "Abuse"]
+      invalidatesTags: ["AdminUrls", "Abuse", "UserUrls", "UserProfile"],
     }),
 
     adminDisableUrl: builder.mutation({
@@ -59,7 +58,7 @@ export const adminApi = createApi({
         url: `/admin/url/${id}/disable`,
         method: "PATCH",
       }),
-      invalidatesTags: ["AdminUrls", "Abuse"]
+      invalidatesTags: ["AdminUrls", "Abuse", "UserUrls", "UserProfile"],
     }),
 
     adminDeleteUrl: builder.mutation({
@@ -67,7 +66,7 @@ export const adminApi = createApi({
         url: `/admin/url/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["AdminUrls", "Abuse"]
+      invalidatesTags: ["AdminUrls", "Abuse", "UserUrls", "UserProfile"],
     }),
     getSecurityLogs: builder.query({
       query: () => "/admin/logs",
@@ -112,7 +111,6 @@ export const adminApi = createApi({
   }),
 });
 
-
 export const {
   useGetUsersQuery,
   useGetUserProfileQuery,
@@ -126,7 +124,7 @@ export const {
   useGetSecurityLogsQuery,
   useGetHighRiskLogsQuery,
   useDeleteSecurityLogsMutation,
-   useGetBlockedUsersQuery,
-    useBlockUserMutation,
-    useUnblockUserMutation,
+  useGetBlockedUsersQuery,
+  useBlockUserMutation,
+  useUnblockUserMutation,
 } = adminApi;

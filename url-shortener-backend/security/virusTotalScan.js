@@ -9,7 +9,7 @@ export const scanWithVirusTotal = async (url) => {
           "x-apikey": process.env.VIRUS_TOTAL_API_KEY,
           "Content-Type": "application/x-www-form-urlencoded",
         },
-      }
+      },
     );
 
     const analysisId = response.data.data.id;
@@ -17,7 +17,7 @@ export const scanWithVirusTotal = async (url) => {
     // Fetch result
     const analysisResult = await axios.get(
       `https://www.virustotal.com/api/v3/analyses/${analysisId}`,
-      { headers: { "x-apikey": process.env.VIRUS_TOTAL_API_KEY } }
+      { headers: { "x-apikey": process.env.VIRUS_TOTAL_API_KEY } },
     );
 
     const stats = analysisResult.data.data.attributes.stats;
@@ -26,7 +26,6 @@ export const scanWithVirusTotal = async (url) => {
     const malicious = stats.malicious || stats.suspicious;
 
     return { safe: malicious === 0, rateLimited: false };
-
   } catch (error) {
     console.error("VirusTotal error:", error?.response?.data || error);
 

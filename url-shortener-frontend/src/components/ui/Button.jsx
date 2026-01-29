@@ -1,7 +1,7 @@
 const variants = {
   primary: "bg-black text-white hover:bg-gray-800",
   secondary: "border hover:bg-gray-100",
-  danger: "bg-red-600 text-white hover:bg-red-700"
+  danger: "bg-red-600 text-white hover:bg-red-700",
 };
 
 const Button = ({
@@ -10,7 +10,7 @@ const Button = ({
   className,
   type = "button",
   variant = "primary",
-  disabled = false
+  disabled = false,
 }) => {
   return (
     <button

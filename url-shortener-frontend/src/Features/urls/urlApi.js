@@ -7,7 +7,6 @@ export const urlApi = createApi({
   tagTypes: ["Urls", "UrlStats", "History"],
 
   endpoints: (builder) => ({
-    
     getMyUrls: builder.query({
       query: () => "/urls/my",
       providesTags: ["Urls"],
@@ -16,9 +15,7 @@ export const urlApi = createApi({
 
     getUrlStats: builder.query({
       query: (id) => `/urls/${id}/stats`,
-      providesTags: (result, error, id) => [
-        { type: "UrlStats", id }
-      ],
+      providesTags: (result, error, id) => [{ type: "UrlStats", id }],
       keepUnusedDataFor: 300,
     }),
 
@@ -40,7 +37,7 @@ export const urlApi = createApi({
 
       invalidatesTags: (result, error, { id }) => [
         "Urls",
-        { type: "UrlStats", id }
+        { type: "UrlStats", id },
       ],
     }),
 
@@ -50,10 +47,9 @@ export const urlApi = createApi({
         method: "DELETE",
       }),
 
-      // FIXED HERE
       invalidatesTags: (result, error, id) => [
         "Urls",
-        { type: "UrlStats", id }
+        { type: "UrlStats", id },
       ],
     }),
 
@@ -62,7 +58,6 @@ export const urlApi = createApi({
       providesTags: ["History"],
       keepUnusedDataFor: 600,
     }),
-
   }),
 });
 

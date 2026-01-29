@@ -32,7 +32,7 @@ export function analyzeUrlRisk(url) {
 
   // Phishing keywords
   const phishingWords = ["login", "verify", "update", "password", "wallet"];
-  if (phishingWords.some(w => lower.includes(w))) {
+  if (phishingWords.some((w) => lower.includes(w))) {
     score += 10;
   }
 

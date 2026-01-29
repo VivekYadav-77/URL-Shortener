@@ -8,9 +8,12 @@ export const store = configureStore({
     [authApi.reducerPath]: authApi.reducer,
     [urlApi.reducerPath]: urlApi.reducer,
     [adminApi.reducerPath]: adminApi.reducer,
-    auth: authReducer
-    
+    auth: authReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(authApi.middleware,urlApi.middleware,adminApi.middleware)
+    getDefaultMiddleware().concat(
+      authApi.middleware,
+      urlApi.middleware,
+      adminApi.middleware,
+    ),
 });

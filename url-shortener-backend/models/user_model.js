@@ -48,18 +48,18 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     status: {
-    type: String,
-    enum: ["active", "blocked"],
-    default: "active",
-  },
-  blockedAt: {
-    type: Date,
-    default: null,
-  },
-  reason: {
-    type: String,
-    default: null,
-  }
+      type: String,
+      enum: ["active", "blocked"],
+      default: "active",
+    },
+    blockedAt: {
+      type: Date,
+      default: null,
+    },
+    reason: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true },
 );

@@ -22,9 +22,10 @@ import VerifyEmail from "./Pages/VerifyEmail";
 import ResetPassword from "./Pages/ResetPassword";
 import SpaceNotFound from "./Pages/NotFoundPage";
 import AdminBlockedUsersPage from "./Pages/AdminBlockedUsers";
-import {ForgotPassword} from "./Pages/ForgotPassword"
+import { ForgotPassword } from "./Pages/ForgotPassword";
 import AboutUs from "./Pages/Aboutus";
 import AdminProfile from "./Pages/AdminProfilePage";
+import ContactMePage from "./Pages/ContactUs";
 function App() {
   const dispatch = useAppDispatch();
 
@@ -33,7 +34,6 @@ function App() {
   useEffect(() => {
     if (isSuccess && data) {
       dispatch(setUser(data));
-     
     }
     if (isError) {
       dispatch(clearUser());
@@ -58,9 +58,9 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email/:token" element={<VerifyEmail />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-        <Route path="/forgot-password" element={<ForgotPassword/>} />
-        <Route path="/aboutus" element={<AboutUs/>} />
-
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/aboutus" element={<AboutUs />} />
+        <Route path="/contactus" element={<ContactMePage />} />
 
         {/*AdminRoute */}
         <Route element={<AdminRoute />}>
@@ -69,10 +69,12 @@ function App() {
           <Route path="/admin/users/:id" element={<AdminUserProfile />} />
           <Route path="/admin/urls" element={<AdminUrls />} />
           <Route path="/admin/abuse" element={<AdminAbuseUrls />} />
-          <Route path="/admin/logs" element={<AdminSecurityLogsPage/>} />
-          <Route path ="/admin/blockeduser"element={<AdminBlockedUsersPage/>}/>
+          <Route path="/admin/logs" element={<AdminSecurityLogsPage />} />
+          <Route
+            path="/admin/blockeduser"
+            element={<AdminBlockedUsersPage />}
+          />
           <Route path="/admin/profile" element={<AdminProfile />} />
-
         </Route>
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>
@@ -82,7 +84,7 @@ function App() {
           <Route path="/urls/:id/stats" element={<UrlStats />} />
           <Route path="/profile" element={<Profile />} />
         </Route>
-        <Route path="*" element={<SpaceNotFound/>} />
+        <Route path="*" element={<SpaceNotFound />} />
       </Routes>
     </BrowserRouter>
   );

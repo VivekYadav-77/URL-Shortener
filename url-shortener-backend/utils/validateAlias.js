@@ -1,11 +1,4 @@
-const RESERVED = [
-  "api",
-  "auth",
-  "login",
-  "register",
-  "admin",
-  "dashboard"
-];
+const RESERVED = ["api", "auth", "login", "register", "admin", "dashboard"];
 
 export const validateAlias = (alias) => {
   if (!alias || alias.length < 4 || alias.length > 30) return false;

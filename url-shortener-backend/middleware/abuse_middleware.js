@@ -8,13 +8,15 @@ export const abuseGuard = async (req, res, next) => {
     const count = await redis.incr(key);
 
     if (count === 1) {
-      await redis.expire(key, 600); 
+      await redis.expire(key, 600);
     }
 
     if (count > 100) {
       return res
         .status(403)
-        .json({ message: "Access temporarily blocked due to suspicious activity" });
+        .json({
+          message: "Access temporarily blocked due to suspicious activity",
+        });
     }
 
     next();

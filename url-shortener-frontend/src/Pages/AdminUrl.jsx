@@ -8,16 +8,17 @@ import {
 
 import AdminLayout from "./AdminLayout";
 import { useTheme } from "../App/themeStore";
-import { 
-  ArrowRight, 
-  ArrowLeft, 
-  Copy, 
-  ExternalLink, 
-  Trash2, 
-  Power, 
-  X, 
-  Link as LinkIcon, 
-  Search 
+import {
+  ArrowRight,
+  ArrowLeft,
+  Copy,
+  ExternalLink,
+  Trash2,
+  Power,
+  X,
+  Link as LinkIcon,
+  Search,
+  AlertTriangle,
 } from "lucide-react";
 
 const STATUS_OPTIONS = [
@@ -32,13 +33,14 @@ const AdminURLsPage = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [selectedUrl, setSelectedUrl] = useState(null); // Detail Modal
-  const [feedback, setFeedback] = useState(null); // Toast state
+  const [selectedUrl, setSelectedUrl] = useState(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+  const [feedback, setFeedback] = useState(null);
 
   const { theme } = useTheme();
 
-  // Unified Theme Variables
-  const pageBg = theme === "light" ? "bg-white text-black" : "bg-black text-white";
+  const pageBg =
+    theme === "light" ? "bg-white text-black" : "bg-black text-white";
   const cardBg = theme === "light" ? "bg-white" : "bg-gray-900";
   const border = theme === "light" ? "border-gray-300" : "border-gray-700";
   const softText = theme === "light" ? "text-gray-600" : "text-gray-400";
@@ -83,44 +85,95 @@ const AdminURLsPage = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Permanently delete this URL? This cannot be undone.")) {
-      try {
-        await deleteUrl(id).unwrap();
-        toast("URL deleted permanently");
-      } catch {
-        toast("Deletion failed", "error");
-      }
+  const handleDelete = async () => {
+    if (!deleteConfirmId) return;
+    try {
+      await deleteUrl(deleteConfirmId).unwrap();
+      toast("URL deleted permanently");
+      setDeleteConfirmId(null);
+    } catch {
+      toast("Deletion failed", "error");
     }
   };
 
   return (
     <AdminLayout>
       <div className={`min-h-screen ${pageBg} transition-colors duration-300`}>
-        
         {/* TOAST NOTIFICATION */}
         {feedback && (
           <div className="fixed bottom-6 right-6 z-50">
-            <div className={`px-5 py-3 rounded-2xl shadow-2xl text-sm font-black border ${feedback.type === "success" ? "bg-green-600 text-white border-green-500" : "bg-red-600 text-white border-red-500"}`}>
+            <div
+              className={`px-5 py-3 rounded-2xl shadow-2xl text-sm font-black border ${feedback.type === "success" ? "bg-green-600 text-white border-green-500" : "bg-red-600 text-white border-red-500"}`}
+            >
               {feedback.msg}
+            </div>
+          </div>
+        )}
+
+        {/* DELETE CONFIRMATION MODAL */}
+        {deleteConfirmId && (
+          <div className="fixed inset-0 z-110 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div
+              className={`w-full max-w-md rounded-3xl p-8 shadow-2xl border ${cardBg} ${border} text-center`}
+            >
+              <div className="flex justify-center mb-4 text-red-500">
+                <AlertTriangle size={60} />
+              </div>
+              <h3 className={`text-2xl font-black mb-2 ${strongText}`}>
+                Are you absolute sure?
+              </h3>
+              <p className={`mb-8 text-sm ${softText} leading-relaxed`}>
+                This action is permanent. This URL{" "}
+                <span className="text-red-500 font-bold underline">
+                  cannot be restored
+                </span>{" "}
+                and the short code{" "}
+                <span className="text-red-500 font-bold underline">
+                  cannot be recreated
+                </span>{" "}
+                in the future.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirmId(null)}
+                  className={`flex-1 py-3 rounded-xl font-bold border ${border} ${strongText} hover:bg-gray-100 dark:hover:bg-gray-800 transition`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 bg-red-600 hover:bg-red-700 text-white py-3 rounded-xl font-bold transition shadow-lg shadow-red-500/30"
+                >
+                  Delete Forever
+                </button>
+              </div>
             </div>
           </div>
         )}
 
         {/* URL DETAIL MODAL */}
         {selectedUrl && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-            <div className={`w-full max-w-lg rounded-3xl p-8 shadow-2xl border ${cardBg} ${border}`}>
+          <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+            <div
+              className={`w-full max-w-lg rounded-3xl p-8 shadow-2xl border ${cardBg} ${border}`}
+            >
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
-                   <LinkIcon className="text-blue-500" size={24} />
-                   <h3 className={`font-black text-xl ${strongText}`}>Original Destination</h3>
+                  <LinkIcon className="text-blue-500" size={24} />
+                  <h3 className={`font-black text-xl ${strongText}`}>
+                    Original Destination
+                  </h3>
                 </div>
-                <button onClick={() => setSelectedUrl(null)} className={softText}>
+                <button
+                  onClick={() => setSelectedUrl(null)}
+                  className={softText}
+                >
                   <X size={24} />
                 </button>
               </div>
-              <div className={`p-5 rounded-2xl mb-8 break-all text-sm font-mono border ${theme === "light" ? "bg-gray-100 border-gray-200" : "bg-gray-800 border-gray-700"} ${strongText}`}>
+              <div
+                className={`p-5 rounded-2xl mb-8 break-all text-sm font-mono border ${theme === "light" ? "bg-gray-100 border-gray-200" : "bg-gray-800 border-gray-700"} ${strongText}`}
+              >
                 {selectedUrl}
               </div>
               <div className="flex gap-4">
@@ -144,8 +197,14 @@ const AdminURLsPage = () => {
         )}
 
         <div className="mb-8">
-          <h2 className={` text-4xl font-extrabold tracking-tight mb-2 bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent`}>Global URL Registry</h2>
-          <p className={`mt-2 ${softText}`}>Overview and management of all shortened links across the platform.</p>
+          <h2
+            className={` text-4xl font-extrabold tracking-tight mb-2 bg-linear-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent`}
+          >
+            Global URL Registry
+          </h2>
+          <p className={`mt-2 ${softText}`}>
+            Overview and management of all shortened links across the platform.
+          </p>
         </div>
 
         {/* FILTERS & SEARCH */}
@@ -165,7 +224,9 @@ const AdminURLsPage = () => {
             ))}
           </div>
 
-          <div className={`flex items-center px-6 py-3 rounded-2xl border-2 ${border} ${cardBg} w-full md:w-80 transition-all focus-within:border-blue-500`}>
+          <div
+            className={`flex items-center px-6 py-3 rounded-2xl border-2 ${border} ${cardBg} w-full md:w-80 transition-all focus-within:border-blue-500`}
+          >
             <Search size={20} className={softText} />
             <input
               type="text"
@@ -178,9 +239,11 @@ const AdminURLsPage = () => {
         </div>
 
         {/* TABLE SECTION */}
-        <div className={`rounded-3xl border shadow-2xl overflow-hidden ${cardBg} ${border}`}>
+        <div
+          className={`rounded-3xl border shadow-2xl overflow-hidden ${cardBg} ${border}`}
+        >
           <div className="overflow-x-auto">
-            <table className="w-full text-left min-w-[1000px]">
+            <table className="w-full text-left min-w-250">
               <thead className={`${tableHeadBg} border-b ${border}`}>
                 <tr className="text-xs uppercase font-black tracking-widest">
                   <th className="p-5">Short Link</th>
@@ -195,13 +258,19 @@ const AdminURLsPage = () => {
               <tbody className={`divide-y ${border}`}>
                 {isLoading ? (
                   <tr>
-                    <td colSpan="6" className="p-20 text-center font-bold text-blue-500 animate-pulse">
+                    <td
+                      colSpan="7"
+                      className="p-20 text-center font-bold text-blue-500 animate-pulse"
+                    >
                       Fetching Registry Data...
                     </td>
                   </tr>
                 ) : urls.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="p-20 text-center font-bold text-gray-500">
+                    <td
+                      colSpan="7"
+                      className="p-20 text-center font-bold text-gray-500"
+                    >
                       No URLs matching the current filter.
                     </td>
                   </tr>
@@ -209,47 +278,77 @@ const AdminURLsPage = () => {
                   urls.map((url) => {
                     const shortUrl = `${import.meta.env.VITE_B_LOCATION}/${url.shortCode}`;
                     return (
-                      <tr key={url._id} className={`${rowHover} transition-colors`}>
+                      <tr
+                        key={url._id}
+                        className={`${rowHover} transition-colors`}
+                      >
                         <td className="p-5">
                           <div className="flex flex-col">
-                            <a href={shortUrl} target="_blank" rel="noreferrer" className="text-blue-600 font-black hover:underline">{import.meta.env.VITE_B_LOCATION}{url.shortCode}</a>
-                            
+                            <a
+                              href={shortUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-600 font-black hover:underline"
+                            >
+                              {import.meta.env.VITE_B_LOCATION}
+                              {url.shortCode}
+                            </a>
                           </div>
                         </td>
-                        <td><p 
-                              onClick={() => setSelectedUrl(url.originalUrl)}
-                              className={`text-[11px] truncate max-w-[180px] cursor-pointer hover:text-blue-500 font-medium ${softText}`}
-                            >
-                              {url.originalUrl}
-                            </p></td>
+                        <td>
+                          <p
+                            onClick={() => setSelectedUrl(url.originalUrl)}
+                            className={`text-[11px] truncate max-w-45 cursor-pointer hover:text-blue-500 font-medium ${softText}`}
+                          >
+                            {url.originalUrl}
+                          </p>
+                        </td>
                         <td className="p-5">
                           <StatusBadge status={url.status} theme={theme} />
                         </td>
                         <td className="p-5 text-center">
-                          <span className="text-sm font-bold">{url.clicks} clicks</span>
+                          <span className="text-sm font-bold">
+                            {url.clicks} clicks
+                          </span>
                         </td>
                         <td className="p-5 text-center">
-                           <p className="text-xs font-bold">{new Date(url.createdAt).toLocaleDateString()}</p>
+                          <p className="text-xs font-bold">
+                            {new Date(url.createdAt).toLocaleDateString()}
+                          </p>
                         </td>
                         <td className="p-5 text-center">
-                          <span className="text-xs font-medium text-gray-500">{url.owner?.email || "N/A"}</span>
+                          <span className="text-xs font-medium text-gray-500">
+                            {url.owner?.email || "N/A"}
+                          </span>
                         </td>
                         <td className="p-5">
-                           <div className="flex justify-center items-center gap-3">
-                              {url.status === "inactive" && (
-                                <button onClick={() => handleEnable(url._id)} className="p-2.5 rounded-xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition" title="Enable" >
-                                  <Power size={18} />
-                                </button>
-                              )}
-                              {url.status === "active" && (
-                                <button onClick={() => handleDisable(url._id)} className="p-2.5 rounded-xl bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500 hover:text-white transition" title="Disable">
-                                  <Power size={18} />
-                                </button>
-                              )}
-                              <button onClick={() => handleDelete(url._id)} className="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white transition" title="Delete">
-                                <Trash2 size={18} />
+                          <div className="flex justify-center items-center gap-3">
+                            {url.status === "inactive" && (
+                              <button
+                                onClick={() => handleEnable(url._id)}
+                                className="p-2.5 rounded-xl bg-green-500/10 text-green-600 hover:bg-green-500 hover:text-white transition"
+                                title="Enable"
+                              >
+                                <Power size={18} />
                               </button>
-                           </div>
+                            )}
+                            {url.status === "active" && (
+                              <button
+                                onClick={() => handleDisable(url._id)}
+                                className="p-2.5 rounded-xl bg-yellow-500/10 text-yellow-600 hover:bg-yellow-500 hover:text-white transition"
+                                title="Disable"
+                              >
+                                <Power size={18} />
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setDeleteConfirmId(url._id)}
+                              className="p-2.5 rounded-xl bg-red-500/10 text-red-600 hover:bg-red-500 hover:text-white transition"
+                              title="Delete"
+                            >
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -265,7 +364,7 @@ const AdminURLsPage = () => {
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            className={`p-3 rounded-xl border-2 transition-all ${page === 1 ? 'opacity-30 border-gray-300' : 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
+            className={`p-3 rounded-xl border-2 transition-all ${page === 1 ? "opacity-30 border-gray-300" : "border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"}`}
           >
             <ArrowLeft size={20} />
           </button>
@@ -275,7 +374,7 @@ const AdminURLsPage = () => {
           <button
             onClick={() => setPage((p) => p + 1)}
             disabled={urls.length < 15}
-            className={`p-3 rounded-xl border-2 transition-all ${urls.length < 15 ? 'opacity-30 border-gray-300' : 'border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white'}`}
+            className={`p-3 rounded-xl border-2 transition-all ${urls.length < 15 ? "opacity-30 border-gray-300" : "border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"}`}
           >
             <ArrowRight size={20} />
           </button>
@@ -287,14 +386,28 @@ const AdminURLsPage = () => {
 
 const StatusBadge = ({ status, theme }) => {
   const styles = {
-    active: theme === "light" ? "bg-green-100 text-green-700 border-green-200" : "bg-green-900/40 text-green-300 border-green-800",
-    inactive: theme === "light" ? "bg-yellow-100 text-yellow-700 border-yellow-200" : "bg-yellow-900/40 text-yellow-300 border-yellow-800",
-    deleted: theme === "light" ? "bg-red-100 text-red-700 border-red-200" : "bg-red-900/40 text-red-300 border-red-800",
-    expired: theme === "light" ? "bg-gray-100 text-gray-700 border-gray-200" : "bg-gray-800 text-gray-300 border-gray-700",
+    active:
+      theme === "light"
+        ? "bg-green-100 text-green-700 border-green-200"
+        : "bg-green-900/40 text-green-300 border-green-800",
+    inactive:
+      theme === "light"
+        ? "bg-yellow-100 text-yellow-700 border-yellow-200"
+        : "bg-yellow-900/40 text-yellow-300 border-yellow-800",
+    deleted:
+      theme === "light"
+        ? "bg-red-100 text-red-700 border-red-200"
+        : "bg-red-900/40 text-red-300 border-red-800",
+    expired:
+      theme === "light"
+        ? "bg-gray-100 text-gray-700 border-gray-200"
+        : "bg-gray-800 text-gray-300 border-gray-700",
   };
 
   return (
-    <span className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${styles[status] || styles.expired}`}>
+    <span
+      className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${styles[status] || styles.expired}`}
+    >
       {status}
     </span>
   );

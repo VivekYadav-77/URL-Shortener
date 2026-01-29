@@ -79,7 +79,7 @@ const CreateUrl = () => {
               className={`text-5xl font-black tracking-tight mb-4 ${isDark ? "text-white" : "text-gray-900"}`}
             >
               Create{" "}
-              <span className="bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
                 Short Link
               </span>
             </h2>
@@ -242,7 +242,7 @@ const CreateUrl = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`flex-[2] flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-white shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  className={`flex-2 flex items-center justify-center gap-2 px-6 py-4 rounded-2xl font-black text-white shadow-xl transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
                     isDark
                       ? "bg-blue-600 hover:bg-blue-500 shadow-blue-600/20"
                       : "bg-blue-600 hover:bg-blue-700 shadow-blue-600/30"

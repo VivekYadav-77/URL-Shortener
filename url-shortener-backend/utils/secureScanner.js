@@ -5,7 +5,7 @@ import { scanWithVirusTotal } from "../security/virusTotalScan.js";
 export const checkUrlSecurity = async (originalUrl) => {
   const existing = await UrlCollection.findOne({
     originalUrl,
-    "scanCache.safe": { $ne: null }
+    "scanCache.safe": { $ne: null },
   }).select("scanCache");
 
   if (existing) {
@@ -45,7 +45,7 @@ export const checkUrlSecurity = async (originalUrl) => {
         checkedAt: new Date(),
         source: "virustotal",
       },
-    }
+    },
   );
 
   return { safe: vtRes.safe, rateLimited: false, source: "virustotal" };

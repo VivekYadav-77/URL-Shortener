@@ -4,9 +4,8 @@ export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: baseQueryWithAuth,
   tagTypes: ["User"],
-  
-  endpoints: (builder) => ({
 
+  endpoints: (builder) => ({
     getMe: builder.query({
       query: () => "/users/me",
       providesTags: ["User"],
@@ -19,7 +18,7 @@ export const authApi = createApi({
         method: "POST",
         body: credentials,
       }),
-      invalidatesTags: ["User"]
+      invalidatesTags: ["User"],
     }),
 
     logout: builder.mutation({
@@ -27,7 +26,7 @@ export const authApi = createApi({
         url: "/auth/logout",
         method: "POST",
       }),
-      invalidatesTags: ["User"]
+      invalidatesTags: ["User"],
     }),
 
     register: builder.mutation({
@@ -44,7 +43,7 @@ export const authApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: ["User"]
+      invalidatesTags: ["User"],
     }),
 
     changePassword: builder.mutation({
@@ -53,7 +52,7 @@ export const authApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: ["User"]
+      invalidatesTags: ["User"],
     }),
     verifyEmail: builder.query({
       query: (token) => `/auth/verify-email/${token}`,
@@ -82,10 +81,8 @@ export const authApi = createApi({
         body: { password },
       }),
     }),
-
   }),
 });
-
 
 export const {
   useLoginMutation,
@@ -98,5 +95,4 @@ export const {
   useResendVerificationMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,
- 
 } = authApi;

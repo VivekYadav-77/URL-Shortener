@@ -16,7 +16,7 @@ export const baseQueryWithAuth = async (args, api, extraOptions) => {
       const refreshResult = await baseQuery(
         { url: "/auth/refresh", method: "POST" },
         api,
-        extraOptions
+        extraOptions,
       );
 
       isRefreshing = false;

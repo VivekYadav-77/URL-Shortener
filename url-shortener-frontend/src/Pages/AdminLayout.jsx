@@ -16,12 +16,11 @@ const AdminLayout = ({ children }) => {
   return (
     <div
       className={`min-h-screen ${bgPage} ${textColor} transition-colors`}
-      style={{ overflowX: "hidden" }}   // ✅ FIX: No horizontal scroll ever
+      style={{ overflowX: "hidden" }}
     >
       <Navbar />
 
       <div className="flex relative">
-
         {/* DESKTOP SIDEBAR */}
         <aside
           className={`
@@ -54,7 +53,7 @@ const AdminLayout = ({ children }) => {
             transition-transform duration-300
             ${isOpen ? "translate-x-0" : "-translate-x-full"}
           `}
-          style={{ willChange: "transform" }}  // smooth, no layout shift
+          style={{ willChange: "transform" }}
         >
           <Sidebar onNavigate={() => setIsOpen(false)} isMobile={true} />
         </aside>
@@ -68,12 +67,13 @@ const AdminLayout = ({ children }) => {
             mt-16
             min-h-[calc(100vh-4rem)]
             transition-colors duration-300
-            ${theme === "light"
-              ? "bg-gradient-to-br from-gray-50 to-gray-100"
-              : "bg-gradient-to-br from-black to-gray-900"
+            ${
+              theme === "light"
+                ? "bg-linear-to-br from-gray-50 to-gray-100"
+                : "bg-linear-to-br from-black to-gray-900"
             }
           `}
-          style={{ overflowX: "hidden" }}  // ❌ prevents inner accidental scroll
+          style={{ overflowX: "hidden" }}
         >
           {children}
         </main>

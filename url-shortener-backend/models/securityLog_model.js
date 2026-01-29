@@ -12,7 +12,7 @@ const securityLogSchema = new mongoose.Schema(
         "critical_blocked",
         "admin_blocked",
         "admin_disabled",
-        "creation_attempt_blocked"
+        "creation_attempt_blocked",
       ],
       required: true,
     },
@@ -35,7 +35,7 @@ const securityLogSchema = new mongoose.Schema(
       ip: String,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export default mongoose.model("SecurityLog", securityLogSchema);

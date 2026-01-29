@@ -7,10 +7,7 @@ import crypto from 'crypto';
  * @param {string} type - 'VERIFY' or 'RESET'
  */
 export const sendAuthEmail = async (user, type) => {
-  // --- DEBUGGING: CHECK IF ENV VARIABLES ARE LOADED ---
-  console.log("DEBUG: Checking Environment Variables...");
-  console.log("DEBUG URL:", process.env.GOOGLE_SCRIPT_URL);
-  console.log("DEBUG SECRET:", process.env.GAS_SECRET ? "Exists (Hidden)" : "MISSING");
+ 
   
   // 1. Generate the security token
   const token = crypto.randomBytes(32).toString('hex');
@@ -83,7 +80,6 @@ export const sendAuthEmail = async (user, type) => {
     }
 
   } catch (error) {
-    // Detailed error logging for getaddrinfo issues
     console.error("--- MAILER ERROR ---");
     console.error("Message:", error.message);
     if (error.code === 'ENOTFOUND') {

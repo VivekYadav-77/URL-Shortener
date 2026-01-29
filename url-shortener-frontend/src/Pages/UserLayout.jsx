@@ -20,7 +20,6 @@ const UserLayout = ({ children }) => {
       <Navbar />
 
       <div className="flex relative">
-
         {/* DESKTOP SIDEBAR */}
         <aside
           className={`
