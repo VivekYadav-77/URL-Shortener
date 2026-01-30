@@ -1,7 +1,6 @@
 import UserCollection from "../models/user_model.js";
 import ApiError from "../utils/ApiError.js";
 export const criticalActionGuard = async (req, res, next) => {
-  // Check the DB for the user's current status
   const user = await UserCollection.findById(req.userId).select("status");
 
   if (!user || user.status === "blocked") {

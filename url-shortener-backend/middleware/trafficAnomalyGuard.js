@@ -8,13 +8,13 @@ export const trafficAnomalyGuard = async (req, res, next) => {
     const { shortCode } = req.params;
 
     const botAgents = ["curl", "python", "wget", "bot", "scraper"];
-    if (botAgents.some(agent => userAgent.includes(agent))) {
+    if (botAgents.some((agent) => userAgent.includes(agent))) {
       await markAbuse(shortCode, 5);
     }
 
     const burstKey = `burst:${shortCode}:${ip}`;
     const burstCount = await redis.incr(burstKey);
-    redis.expire(burstKey, 10); 
+    redis.expire(burstKey, 10);
 
     if (burstCount > 8) {
       await markAbuse(shortCode, 10);
@@ -22,13 +22,15 @@ export const trafficAnomalyGuard = async (req, res, next) => {
 
     const globalKey = `spike:${shortCode}`;
     const globalCount = await redis.incr(globalKey);
-    redis.expire(globalKey, 60); 
+    redis.expire(globalKey, 60);
 
     if (globalCount > 200) {
       await markAbuse(shortCode, 20);
     }
 
-    const urlDoc = await UrlCollection.findOne({ shortCode }).select("abuseScore status isActive");
+    const urlDoc = await UrlCollection.findOne({ shortCode }).select(
+      "abuseScore status isActive",
+    );
 
     if (!urlDoc) return next();
 
@@ -46,13 +48,12 @@ export const trafficAnomalyGuard = async (req, res, next) => {
   }
 };
 
-
 async function markAbuse(shortCode, amount) {
   await UrlCollection.findOneAndUpdate(
     { shortCode },
-    { 
-      $inc: { abuseScore: amount }, 
-      $set: { lastAbuseAt: new Date() } 
-    }
+    {
+      $inc: { abuseScore: amount },
+      $set: { lastAbuseAt: new Date() },
+    },
   );
 }

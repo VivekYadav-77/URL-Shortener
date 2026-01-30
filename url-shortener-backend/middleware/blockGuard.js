@@ -2,7 +2,6 @@ import UserCollection from "../models/user_model.js";
 import ApiError from "../utils/ApiError.js";
 export const blockGuard = async (req, res, next) => {
   const { email } = req.body;
-  console.log("email", email);
   if (!email) return next(new ApiError(400, "All fields required"));
   const user = await UserCollection.findOne({ email });
   if (!user) {

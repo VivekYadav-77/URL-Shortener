@@ -40,8 +40,9 @@ export const createShortUrl = async (req, res, next) => {
 
     if (customAlias) {
       shortCode = customAlias.trim().toLowerCase();
-      if (!validateAlias(shortCode)) return next(new ApiError(400, "Invalid alias format."));
-      
+      if (!validateAlias(shortCode))
+        return next(new ApiError(400, "Invalid alias format."));
+
       const exists = await UrlCollection.exists({ shortCode });
       if (exists) return next(new ApiError(409, "Alias already taken"));
       isCustom = true;
@@ -62,11 +63,12 @@ export const createShortUrl = async (req, res, next) => {
       SecurityLog.exists({
         originalUrl,
         type: { $in: ["high_risk_blocked", "critical_blocked"] },
-      })
+      }),
     ]);
 
     if (adminBlocked) return next(new ApiError(403, "URL blocked by admin."));
-    if (securityLogged) return next(new ApiError(400, "URL previously flagged as harmful."));
+    if (securityLogged)
+      return next(new ApiError(400, "URL previously flagged as harmful."));
 
     // 5. Risk Analysis & Logging
     const riskScore = analyzeUrlRisk(originalUrl);
@@ -76,7 +78,7 @@ export const createShortUrl = async (req, res, next) => {
         originalUrl,
         shortCode,
         user: req.userId,
-        metadata: getSecurityMetadata(req, { riskScore })
+        metadata: getSecurityMetadata(req, { riskScore }),
       });
       return next(new ApiError(400, "URL blocked due to high risk."));
     }
@@ -84,26 +86,34 @@ export const createShortUrl = async (req, res, next) => {
     // 6. Security Scanning (Check Cache First)
     const twoWeekMs = 14 * 24 * 60 * 60 * 1000;
     // We look for any existing document for this URL to see its scan history
-    const existingDoc = await UrlCollection.findOne({ originalUrl }).select("scanCache");
-    
+    const existingDoc = await UrlCollection.findOne({ originalUrl }).select(
+      "scanCache",
+    );
+
     let scanResult;
     const cache = existingDoc?.scanCache;
 
-    if (cache?.safe !== null && cache?.checkedAt && (now - new Date(cache.checkedAt).getTime() < twoWeekMs)) {
+    if (
+      cache?.safe !== null &&
+      cache?.checkedAt &&
+      now - new Date(cache.checkedAt).getTime() < twoWeekMs
+    ) {
       scanResult = { safe: cache.safe, source: cache.source, fromCache: true };
     } else {
       // Actual API call only if needed
       scanResult = await checkUrlSecurity(originalUrl);
 
-      if (scanResult.rateLimited) return next(new ApiError(503, "Security service busy."));
-      if (!scanResult.safe){await SecurityLog.create({
+      if (scanResult.rateLimited)
+        return next(new ApiError(503, "Security service busy."));
+      if (!scanResult.safe) {
+        await SecurityLog.create({
           type: "unsafe_scan_blocked",
           originalUrl,
           shortCode,
           user: req.userId,
-          metadata: getSecurityMetadata(req, { 
-            safe: false, 
-            scannerUsed: scanResult.source 
+          metadata: getSecurityMetadata(req, {
+            safe: false,
+            scannerUsed: scanResult.source,
           }),
         });
         return next(new ApiError(400, "Unsafe URL detected."));
@@ -115,10 +125,10 @@ export const createShortUrl = async (req, res, next) => {
         originalUrl,
         shortCode,
         user: req.userId,
-        metadata: getSecurityMetadata(req, { 
-          safe: true, 
+        metadata: getSecurityMetadata(req, {
+          safe: true,
           scannerUsed: scanResult.source,
-          ip: req.ip 
+          ip: req.ip,
         }),
       });
     }
@@ -142,9 +152,9 @@ export const createShortUrl = async (req, res, next) => {
     return res.status(201).json({
       shortUrl: `${process.env.CLIENT_URL}/${newUrl.shortCode}`,
     });
-
   } catch (err) {
-    if (err.code === 11000) return next(new ApiError(409, "Collision detected, please try again."));
+    if (err.code === 11000)
+      return next(new ApiError(409, "Collision detected, please try again."));
     next(err);
   }
 };
@@ -197,7 +207,9 @@ export const getUrlStats = async (req, res, next) => {
     const url = await UrlCollection.findOne({
       _id: req.params.id,
       owner: req.userId,
-    }).select("clicks createdAt expiresAt isActive disabledAt disabledByRole deletedAt deletedByRole abuseScore shortCode");
+    }).select(
+      "clicks createdAt expiresAt isActive disabledAt disabledByRole deletedAt deletedByRole abuseScore shortCode",
+    );
 
     if (!url) {
       return next(new ApiError(404, "URL not found"));

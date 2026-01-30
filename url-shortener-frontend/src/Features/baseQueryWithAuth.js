@@ -1,7 +1,8 @@
 import { fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { clearUser } from "./auth/authSlice";
+const API_BASE_URL = import.meta.env.VITE_B_LOCATION;
 const baseQuery = fetchBaseQuery({
-  baseUrl: "http://localhost:5000/api",
+  baseUrl: `${API_BASE_URL}/api`,
   credentials: "include",
 });
 let isRefreshing = false;

@@ -29,16 +29,18 @@ export const register = async (req, res, next) => {
 
   try {
     // 2. Trigger the verification email logic
-   const hello = await sendAuthEmail(user, 'VERIFY'); 
-   console.log("email",hello)
+    const hello = await sendAuthEmail(user, "VERIFY");
+    console.log("email", hello);
 
-    res.status(201).json({ 
-      message: "Registration successful. Please check your email to verify your account before logging in." 
+    res.status(201).json({
+      message:
+        "Registration successful. Please check your email to verify your account before logging in.",
     });
   } catch (error) {
     // If email fails, we don't crash, but tell the user to try resending later
-    res.status(201).json({ 
-      message: "User registered, but verification email failed to send. Please request a resend from the login page." 
+    res.status(201).json({
+      message:
+        "User registered, but verification email failed to send. Please request a resend from the login page.",
     });
   }
 };
@@ -52,15 +54,19 @@ export const login = async (req, res, next) => {
   const user = await UserCollection.findOne({ email }).select("+password");
 
   if (!user || !(await user.comparePassword(password))) {
-    console.log("in the credentials")
+    console.log("in the credentials");
     return next(new ApiError(401, "Invalid credentials"));
   }
 
-  // --- NEW VERIFICATION CHECK ---
+  // NEW VERIFICATION CHECK
   if (!user.isVerified) {
-    return next(new ApiError(403, "Your email is not verified. Please verify it to gain access."));
+    return next(
+      new ApiError(
+        403,
+        "Your email is not verified. Please verify it to gain access.",
+      ),
+    );
   }
-  // -------------------------------
 
   const accessToken = generateAccessToken(user._id);
   const tokenId = generateTokenID();
@@ -107,12 +113,16 @@ export const resendVerification = async (req, res, next) => {
   }
 
   if (user.isVerified) {
-    return res.status(400).json({ message: "This account is already verified." });
+    return res
+      .status(400)
+      .json({ message: "This account is already verified." });
   }
 
   try {
-    await sendAuthEmail(user,'VERIFY'); 
-    res.status(200).json({ message: "Verification link resent to your email." });
+    await sendAuthEmail(user, "VERIFY");
+    res
+      .status(200)
+      .json({ message: "Verification link resent to your email." });
   } catch (error) {
     return next(new ApiError(429, error.message));
   }
@@ -122,7 +132,7 @@ export const verifyEmail = async (req, res, next) => {
 
   const user = await UserCollection.findOne({
     verificationToken: token,
-    verificationTokenExpires: { $gt: Date.now() }
+    verificationTokenExpires: { $gt: Date.now() },
   });
 
   if (!user) {
@@ -134,29 +144,28 @@ export const verifyEmail = async (req, res, next) => {
   user.verificationTokenExpires = undefined;
   await user.save();
 
-  res.status(200).json({ message: "Email verified successfully! You can now log in." });
+  res
+    .status(200)
+    .json({ message: "Email verified successfully! You can now log in." });
 };
 // FORGOT PASSWORD
 export const forgotPassword = async (req, res, next) => {
   const { email } = req.body;
-  console.log("from login email",email)
+  console.log("from login email", email);
   const user = await UserCollection.findOne({ email });
 
   if (!user) return next(new ApiError(404, "Email not found"));
-  if (!user.isVerified) return next(new ApiError(403, "Please verify your email first"));
+  if (!user.isVerified)
+    return next(new ApiError(403, "Please verify your email first"));
 
   try {
-    await sendAuthEmail(user, 'RESET');
+    await sendAuthEmail(user, "RESET");
     res.status(200).json({ message: "Reset link sent to email." });
   } catch (error) {
     next(error);
   }
 };
 
-/**
- * Handles the actual password update after a user clicks the email link.
- * Route: POST /api/auth/reset-password/:token
- */
 export const resetPassword = async (req, res, next) => {
   try {
     const { token } = req.params; // Extract token from URL
@@ -171,11 +180,13 @@ export const resetPassword = async (req, res, next) => {
     // 3. Select '+password' to ensure the Argon2 pre-save hook triggers correctly
     const user = await UserCollection.findOne({
       resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() }
+      resetPasswordExpires: { $gt: Date.now() },
     }).select("+password");
 
     if (!user) {
-      return next(new ApiError(400, "Password reset token is invalid or has expired."));
+      return next(
+        new ApiError(400, "Password reset token is invalid or has expired."),
+      );
     }
 
     // 4. Set the new password
@@ -185,74 +196,82 @@ export const resetPassword = async (req, res, next) => {
     // 5. IMPORTANT: Clear the reset fields so the link cannot be used again
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
-    
+
     await user.save();
 
-    res.status(200).json({ 
-      message: "Password reset successful! You can now log in with your new password." 
+    res.status(200).json({
+      message:
+        "Password reset successful! You can now log in with your new password.",
     });
   } catch (error) {
     next(error);
   }
 };
 //Refresh
-export const refresh = async (req, res,next) => {
+export const refresh = async (req, res, next) => {
   const token = req.cookies.refreshToken;
   if (!token) {
-    return next(new ApiError(401, "No refresh token"))  }
+    return next(new ApiError(401, "No refresh token"));
+  }
   let payload;
   try {
     payload = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
   } catch {
     return next(new ApiError(401, "Invalid refresh token"));
   }
-  const storedToken = await RefreshTokenCollection.findOne({ tokenId: payload.jti });
-    if (!storedToken || storedToken.revoked || storedToken.expiresAt < Date.now()) {
+  const storedToken = await RefreshTokenCollection.findOne({
+    tokenId: payload.jti,
+  });
+  if (
+    !storedToken ||
+    storedToken.revoked ||
+    storedToken.expiresAt < Date.now()
+  ) {
     return next(new ApiError(401, "Refresh token revoked"));
   }
   storedToken.revoked = true;
   const newTokenId = generateTokenID();
   storedToken.replacedByToken = newTokenId;
   await storedToken.save();
-    const newRefreshToken = generateRefreshToken(payload.id, newTokenId);
+  const newRefreshToken = generateRefreshToken(payload.id, newTokenId);
   await RefreshTokenCollection.create({
     tokenId: newTokenId,
     user: payload.id,
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     ip: req.ip,
-    userAgent: req.headers["user-agent"]
+    userAgent: req.headers["user-agent"],
   });
-   const newAccessToken = generateAccessToken(payload.id);
+  const newAccessToken = generateAccessToken(payload.id);
   res.cookie("accessToken", newAccessToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none"   : "lax",
-    maxAge: 60 * 60 * 1000
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 60 * 60 * 1000,
   });
 
   res.cookie("refreshToken", newRefreshToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none"   : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   res.json({ message: "Token refreshed" });
 };
 //logout
-export const logout = async(req,res)=>{
-    const token = req.cookies.refreshToken
-    if(token){
-        const payload = jwt.decode(token)
-        if (payload?.jti) {
+export const logout = async (req, res) => {
+  const token = req.cookies.refreshToken;
+  if (token) {
+    const payload = jwt.decode(token);
+    if (payload?.jti) {
       await RefreshTokenCollection.updateOne(
         { tokenId: payload.jti },
-        { revoked: true }
+        { revoked: true },
       );
     }
-    }
-     res.clearCookie("accessToken");
+  }
+  res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
 
   res.status(200).json({ message: "Logged out successfully" });
-}
+};

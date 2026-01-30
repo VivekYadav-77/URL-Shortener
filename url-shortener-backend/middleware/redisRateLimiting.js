@@ -11,14 +11,12 @@ export const redisRateLimit = (prefix, limit, windowSec) => {
       }
 
       if (count > limit) {
-        return res
-          .status(429)
-          .json({ message: "Too many requests" });
+        return res.status(429).json({ message: "Too many requests" });
       }
 
       next();
     } catch (err) {
-      next(); 
+      next();
     }
   };
 };

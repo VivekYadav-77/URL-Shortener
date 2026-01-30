@@ -1,12 +1,8 @@
-
 import SecurityLog from "../models/securityLog_model.js";
-import ApiError from "../utils/ApiError.js";
 
 export const getSecurityLogs = async (req, res, next) => {
   try {
-    const logs = await SecurityLog.find()
-      .sort({ createdAt: -1 })
-      .limit(500); 
+    const logs = await SecurityLog.find().sort({ createdAt: -1 }).limit(500);
     return res.status(200).json(logs);
   } catch (err) {
     next(err);
@@ -26,7 +22,7 @@ export const getHighRiskLogs = async (req, res, next) => {
 };
 
 export const deleteSecurityLogs = async (req, res, next) => {
-  console.log("at deleted security logs ")
+  console.log("at deleted security logs ");
   try {
     await SecurityLog.deleteMany({});
     return res.status(200).json({ message: "Security logs cleared" });

@@ -20,7 +20,7 @@ export const flushRedisStats = async () => {
         const shortCode = key.split(":")[1];
 
         const stats = await redis.hgetall(key);
-        
+
         const clicks = parseInt(stats?.clicks || 0);
         const abuse = parseInt(stats?.abuse || 0);
 
@@ -30,7 +30,7 @@ export const flushRedisStats = async () => {
             {
               $inc: { clicks, abuseScore: abuse },
               ...(abuse > 0 && { lastAbuseAt: new Date() }),
-            }
+            },
           );
         }
 
@@ -38,7 +38,6 @@ export const flushRedisStats = async () => {
       }
 
       await pipeline.exec();
-
     } while (cursor !== "0" && cursor !== 0);
 
     console.log("Redis stats flushed efficiently");

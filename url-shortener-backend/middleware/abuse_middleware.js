@@ -12,11 +12,9 @@ export const abuseGuard = async (req, res, next) => {
     }
 
     if (count > 100) {
-      return res
-        .status(403)
-        .json({
-          message: "Access temporarily blocked due to suspicious activity",
-        });
+      return res.status(403).json({
+        message: "Access temporarily blocked due to suspicious activity",
+      });
     }
 
     next();

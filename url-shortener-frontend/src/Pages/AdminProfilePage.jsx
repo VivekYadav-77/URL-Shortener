@@ -25,7 +25,6 @@ const AdminProfile = () => {
   const { theme } = useTheme();
   const isDark = theme === "dark";
   const user = useAppSelector((state) => state.auth.user);
-  console.log("user", user);
   const [name, setName] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
