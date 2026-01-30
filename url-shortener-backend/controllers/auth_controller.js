@@ -47,11 +47,14 @@ export const register = async (req, res, next) => {
 //Login
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
+  console.log("in the login",email,password)
   if (!email.endsWith("@gmail.com")) {
+     console.log("in the login emailnot ends with")
     return next(new ApiError(400, "Only Gmail accounts are allowed"));
   }
 
   const user = await UserCollection.findOne({ email }).select("+password");
+  console.log("user",user)
 
   if (!user || !(await user.comparePassword(password))) {
     console.log("in the credentials");

@@ -16,7 +16,7 @@ const connectDB = async () => {
       bufferCommands: false, 
     };
 
-    cached.promise = mongoose.connect(process.env.MONGO_URI, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(process.env.MONGO_URL, opts).then((mongoose) => {
       console.log("=> New MongoDB Connection Established");
       return mongoose;
     });
