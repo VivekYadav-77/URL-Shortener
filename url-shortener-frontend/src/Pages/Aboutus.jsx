@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../App/themeStore";
 import { User, Code, Cpu, Globe, Zap, ShieldCheck, X } from "lucide-react";
+import vk from '../../public/Vivek.png'
 const AboutUs = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
@@ -91,7 +92,7 @@ const AboutUs = () => {
                   />
                 </div>
                 <img
-                  src="../../public/Vivek.png"
+                  src={vk}
                   alt="Vivek Yadav Identity"
                   className="absolute inset-0 w-full h-full object-cover grayscale-20 group-hover:grayscale-0 transition-all duration-700"
                 />
