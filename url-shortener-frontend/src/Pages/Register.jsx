@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useRegisterMutation } from "../Features/auth/authapi";
+import { useRegisterMutation } from "../Features/auth/authApi";
 import { useAppSelector } from "../App/hook";
 import { useTheme } from "../App/themeStore";
 import { motion, AnimatePresence } from "framer-motion";

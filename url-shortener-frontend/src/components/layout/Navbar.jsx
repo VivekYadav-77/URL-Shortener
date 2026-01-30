@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useLogoutMutation } from "../../Features/auth/authapi";
+import { useLogoutMutation } from "../../Features/auth/authApi";
 import { useAppSelector, useAppDispatch } from "../../App/hook";
 import { clearUser } from "../../Features/auth/authSlice";
 import LogoIcon from "../ui/Logo";

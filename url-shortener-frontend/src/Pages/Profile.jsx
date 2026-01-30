@@ -3,7 +3,7 @@ import { useAppSelector, useAppDispatch } from "../App/hook";
 import {
   useUpdateMeMutation,
   useChangePasswordMutation,
-} from "../Features/auth/authapi";
+} from "../Features/auth/authApi";
 import UserLayout from "./UserLayout";
 import { useTheme } from "../App/themeStore";
 import {

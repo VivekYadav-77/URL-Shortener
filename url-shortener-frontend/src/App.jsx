@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useGetMeQuery } from "./Features/auth/authapi";
+import { useGetMeQuery } from "./Features/auth/authApi";
 import { useAppDispatch } from "./App/hook";
 import { setUser, clearUser, markAuthChecked } from "./Features/auth/authSlice";
 import CreateUrl from "./Pages/CreateUrl";

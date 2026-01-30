@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useVerifyEmailQuery } from "../Features/auth/authapi";
+import { useVerifyEmailQuery } from "../Features/auth/authApi";
 import { useTheme } from "../App/themeStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { XCircle, Loader2, Zap, ShieldCheck } from "lucide-react";

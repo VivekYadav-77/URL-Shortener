@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useForgotPasswordMutation } from "../Features/auth/authapi";
+import { useForgotPasswordMutation } from "../Features/auth/authApi";
 import { useTheme } from "../App/themeStore";
 import { motion, AnimatePresence } from "framer-motion";
 import {

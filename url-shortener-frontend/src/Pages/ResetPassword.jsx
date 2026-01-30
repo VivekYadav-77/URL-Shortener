@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useResetPasswordMutation } from "../Features/auth/authapi";
+import { useResetPasswordMutation } from "../Features/auth/authApi";
 import { useTheme } from "../App/themeStore";
 import { motion, AnimatePresence } from "framer-motion";
 import {

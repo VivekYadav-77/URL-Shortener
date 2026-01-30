@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   useLoginMutation,
   useResendVerificationMutation,
-} from "../Features/auth/authapi";
+} from "../Features/auth/authApi";
 import { useAppDispatch, useAppSelector } from "../App/hook";
 import { setUser } from "../Features/auth/authSlice";
 import { useTheme } from "../App/themeStore";
