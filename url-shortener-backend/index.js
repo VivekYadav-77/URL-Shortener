@@ -2,14 +2,14 @@ import dotenv from "dotenv";
 dotenv.config();
 import app from "./app.js";
 import connectDB from "./config/db.js";
+
 connectDB().catch(err => console.error("Initial DB Connection Error:", err));
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => {
-    console.log(`Server is running locally on PORT ${PORT}`);
-  });
-}
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
+});
 
 export default app;
