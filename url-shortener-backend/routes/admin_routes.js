@@ -20,6 +20,7 @@ import {
   unblockUser,
   getBlockedUsers,
 } from "../controllers/admin_controller.js";
+import { getSessions, logoutAll, revokeSession } from "../controllers/adminSessionController.js";
 
 const admin_router = express.Router();
 admin_router.use(authMiddleware, adminMiddleware);
@@ -39,4 +40,8 @@ admin_router.get("/deleteLogs", deleteSecurityLogs);
 admin_router.get("/blocked-users", getBlockedUsers);
 admin_router.patch("/users/:id/block", blockUser);
 admin_router.patch("/users/:id/unblock", unblockUser);
+admin_router.get("/sessions",getSessions);
+admin_router.delete("/sessions/:tokenId",revokeSession);
+admin_router.post("/logout-all",logoutAll);
 export default admin_router;
+

@@ -30,15 +30,17 @@ export const ForgotPassword = () => {
     if (!email.includes("@") || !email.includes(".")) {
       return setLocalError("Valid identity portal required");
     }
-    if (!email.endsWith("@gmail.com")) {
-      return setLocalError("Only Gmail accounts are authorized");
-    }
 
+    // try {
+    //   await forgotPassword({email}).unwrap();
+    // } catch (err) {
+    //   setLocalError(err?.data?.message || "Request failed");
+    // }
     try {
-      await forgotPassword(email).unwrap();
-    } catch (err) {
-      // Error handled by RTK state
-    }
+  const res = await forgotPassword({ email }).unwrap();
+} catch (err) {
+  setLocalError(err?.data?.message || "Request failed");
+}
   };
 
   return (

@@ -1,19 +1,29 @@
 import geoip from "geoip-lite";
+import { getClientIp } from "./getClientIp.js";
 
 export const getSecurityMetadata = (req, extra = {}) => {
-  let ip = req.ip || req.connection.remoteAddress || "0.0.0.0";
+  const ip = getClientIp(req);
 
-  if (ip === "::1") ip = "127.0.0.1";
-  if (ip.includes("::ffff:")) ip = ip.split("::ffff:")[1];
+  const isPrivate =
+    ip.startsWith("10.") ||
+    ip.startsWith("192.168.") ||
+    ip.startsWith("172.");
 
-  const geo = geoip.lookup(ip);
+  const geo = !isPrivate ? geoip.lookup(ip) : null;
+
+  const userAgent = req.get("User-Agent");
 
   return {
     ip,
-    city: geo ? geo.city : "Unknown",
-    country: geo ? geo.country : "Unknown",
-    coordinates: geo ? geo.ll : [0, 0],
-    userAgent: req.get("User-Agent"),
+    city: geo?.city || "Unknown",
+    country: geo?.country || "Unknown",
+    coordinates: geo?.ll || [0, 0],
+    userAgent,
+    isPrivateIP: isPrivate,
+
+    // 🔥 ADD THIS
+    deviceType: /mobile/i.test(userAgent) ? "mobile" : "desktop",
+
     ...extra,
   };
 };

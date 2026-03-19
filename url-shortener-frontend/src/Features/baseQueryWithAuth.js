@@ -6,28 +6,45 @@ const baseQuery = fetchBaseQuery({
   credentials: "include",
 });
 let isRefreshing = false;
+let refreshPromise = null;
 
 export const baseQueryWithAuth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
-  if (result.error?.status === 401) {
+  const url =
+    typeof args === "string"
+      ? args
+      : args?.url || "";
+
+  const isAuthRoute = url.startsWith("/auth/");
+
+
+  if (result.error?.status === 401 && !isAuthRoute) {
     if (!isRefreshing) {
       isRefreshing = true;
 
-      const refreshResult = await baseQuery(
+      refreshPromise = baseQuery(
         { url: "/auth/refresh", method: "POST" },
         api,
-        extraOptions,
-      );
+        extraOptions
+      )
+        .then((res) => {
+          if (!res.data) {
+            api.dispatch(clearUser());
+          }
+          return res;
+        })
+        .finally(() => {
+          isRefreshing = false;
+        });
+    }
 
-      isRefreshing = false;
+    const refreshResult = await refreshPromise;
 
-      if (refreshResult.data) {
-        return await baseQuery(args, api, extraOptions);
-      } else {
-        api.dispatch(clearUser());
-      }
+    if (refreshResult?.data) {
+      return await baseQuery(args, api, extraOptions);
     }
   }
+
   return result;
 };

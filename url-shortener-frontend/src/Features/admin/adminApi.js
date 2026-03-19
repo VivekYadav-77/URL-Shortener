@@ -4,7 +4,7 @@ import { baseQueryWithAuth } from "../baseQueryWithAuth";
 export const adminApi = createApi({
   reducerPath: "adminApi",
   baseQuery: baseQueryWithAuth,
-  tagTypes: ["AdminUrls", "Users", "UserProfile", "UserUrls", "Abuse"],
+  tagTypes: ["AdminUrls", "Users", "UserProfile", "UserUrls", "Abuse" ,"Sessions"],
 
   endpoints: (builder) => ({
     getAdminStats: builder.query({
@@ -108,6 +108,26 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ["User"],
     }),
+     getSessions: builder.query({
+      query: () => "/admin/sessions",
+      providesTags: ["Sessions"],
+    }),
+
+    revokeSession: builder.mutation({
+      query: (tokenId) => ({
+        url: `/admin/sessions/${tokenId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Sessions"],
+    }),
+
+    logoutAll: builder.mutation({
+      query: () => ({
+        url: "/admin/logout-all",
+        method: "POST",
+      }),
+      invalidatesTags: ["Sessions"],
+    }),
   }),
 });
 
@@ -127,4 +147,7 @@ export const {
   useGetBlockedUsersQuery,
   useBlockUserMutation,
   useUnblockUserMutation,
+  useGetSessionsQuery,
+  useRevokeSessionMutation,
+  useLogoutAllMutation,
 } = adminApi;

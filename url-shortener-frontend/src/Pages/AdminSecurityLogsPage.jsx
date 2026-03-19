@@ -14,6 +14,8 @@ import {
   Copy,
   ExternalLink,
   Globe,
+  Smartphone,
+  Monitor,
 } from "lucide-react";
 
 const FILTER_OPTIONS = [
@@ -36,6 +38,9 @@ export default function AdminSecurityLogsPage() {
   const { data: highRiskLogs = [], isLoading: loadingHigh } =
     useGetHighRiskLogsQuery();
   const [deleteLogs, { isLoading: deleting }] = useDeleteSecurityLogsMutation();
+  const getDeviceIcon = (type) => {
+    return type === "mobile" ? <Smartphone size={14} /> : <Monitor size={14} />;
+  };
 
   const logs = filterType === "all" ? allLogs : highRiskLogs;
   const isLoading = filterType === "all" ? loadingAll : loadingHigh;
@@ -328,15 +333,34 @@ export default function AdminSecurityLogsPage() {
                       {/* NEW LOCATION INFO COLUMN */}
                       <td className="p-5 text-center">
                         <div className="flex flex-col items-center gap-1">
-                          <div className="flex items-center gap-1.5 text-blue-500">
-                            <Globe size={12} />
-                            <span className="text-xs font-black uppercase tracking-tighter">
-                              {log.metadata?.country || "UNK"}
+                          {/* 🔥 DEVICE TYPE */}
+                          <div className="flex items-center gap-1 text-blue-500">
+                            {getDeviceIcon(log.metadata?.deviceType)}
+                            <span className="text-[10px] font-bold uppercase">
+                              {log.metadata?.deviceType || "unknown"}
                             </span>
                           </div>
-                          <span className={`text-[10px] font-bold ${softText}`}>
-                            {log.metadata?.city || "Unknown City"}
-                          </span>
+
+                          {/* 🔥 LOCATION FIX */}
+                          {log.metadata?.isPrivateIP ? (
+                            <span className="text-[10px] font-bold text-yellow-500">
+                              Local Network
+                            </span>
+                          ) : (
+                            <>
+                              <div className="flex items-center gap-1.5 text-blue-500">
+                                <Globe size={12} />
+                                <span className="text-xs font-black uppercase tracking-tighter">
+                                  {log.metadata?.country || "UNK"}
+                                </span>
+                              </div>
+                              <span
+                                className={`text-[10px] font-bold ${softText}`}
+                              >
+                                {log.metadata?.city || "Unknown"}
+                              </span>
+                            </>
+                          )}
                         </div>
                       </td>
                       <td className="p-5 text-center">

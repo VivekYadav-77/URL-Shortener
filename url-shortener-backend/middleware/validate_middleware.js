@@ -6,7 +6,10 @@ export const validate =
       req[property] = schema.parse(req[property]);
       next();
     } catch (err) {
-      return next(new ApiError(400, "Invalid input"))
+       return next(
+    new ApiError(400, "Validation failed", err.errors || [])
+  );
+      
      
     }
   };

@@ -22,7 +22,6 @@ export const getHighRiskLogs = async (req, res, next) => {
 };
 
 export const deleteSecurityLogs = async (req, res, next) => {
-  console.log("at deleted security logs ");
   try {
     await SecurityLog.deleteMany({});
     return res.status(200).json({ message: "Security logs cleared" });

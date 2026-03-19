@@ -45,8 +45,10 @@ const Register = () => {
       return setFormError("Username must be at least 3 characters");
     if (!email.includes("@") || !email.includes("."))
       return setFormError("Valid Identity Portal required (@/.)");
-    if (password.length < 8)
-      return setFormError("Security requirement: 8+ characters");
+      const passwordValid = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(password);
+    if (!passwordValid) {
+      return setFormError("Password does not meet security requirements");
+      }
 
     register({ email, password, name });
   };
@@ -218,6 +220,13 @@ const Register = () => {
                     </div>
                   </div>
                 </div>
+                <div className="text-[10px] text-slate-400 px-1 space-y-1">
+  <p>• At least 8 characters</p>
+  <p>• One uppercase letter</p>
+  <p>• One lowercase letter</p>
+  <p>• One number</p>
+  <p>• One special character (@$!%*?&)</p>
+</div>
                 <AnimatePresence mode="wait">
                   {(formError || isError) && (
                     <motion.div
@@ -226,7 +235,12 @@ const Register = () => {
                       className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold"
                     >
                       <AlertCircle size={16} />{" "}
-                      {formError || error?.data?.message || "Synthesis Failed"}
+                      {formError ||
+  error?.data?.errors?.map((err, idx) => (
+    <div key={idx}>{err.message}</div>
+  )) ||
+  error?.data?.message ||
+  "Synthesis Failed"} 
                     </motion.div>
                   )}
                 </AnimatePresence>

@@ -51,6 +51,7 @@ export const Sidebar = ({ onNavigate, isMobile }) => {
       icon: <ShieldBan size={20} />,
     },
     { to: "/aboutus", label: "Aboutus", icon: <Info size={20} /> },
+     { to: "/admin/sessions", label: "Session", icon: <Info size={20} /> }
   ];
 
   return (

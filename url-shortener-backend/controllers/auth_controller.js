@@ -1,4 +1,5 @@
 import ApiError from "../utils/ApiError.js";
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import UserCollection from "../models/user_model.js";
 import RefreshTokenCollection from "../models/statefull_model.js";
@@ -11,6 +12,7 @@ import { sendAuthEmail } from "../utils/sendVerificationEmail.js";
 //Register
 export const register = async (req, res, next) => {
   const { name, email, password } = req.body;
+  
 
   if (!name || !email || !password) {
     return next(new ApiError(400, "All fields required"));
@@ -30,8 +32,7 @@ export const register = async (req, res, next) => {
   try {
     // 2. Trigger the verification email logic
     const hello = await sendAuthEmail(user, "VERIFY");
-    console.log("email", hello);
-
+   
     res.status(201).json({
       message:
         "Registration successful. Please check your email to verify your account before logging in.",
@@ -47,17 +48,10 @@ export const register = async (req, res, next) => {
 //Login
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
-  console.log("in the login",email,password)
-  if (!email.endsWith("@gmail.com")) {
-     console.log("in the login emailnot ends with")
-    return next(new ApiError(400, "Only Gmail accounts are allowed"));
-  }
-
   const user = await UserCollection.findOne({ email }).select("+password");
-  console.log("user",user)
 
   if (!user || !(await user.comparePassword(password))) {
-    console.log("in the credentials");
+   
     return next(new ApiError(401, "Invalid credentials"));
   }
 
@@ -86,7 +80,7 @@ export const login = async (req, res, next) => {
   res.cookie("accessToken", accessToken, {
     httpOnly: true,
     secure: true,
-    sameSite:  "none",
+    sameSite: "none",
     partitioned: true,
     maxAge: 60 * 60 * 1000,
   });
@@ -94,7 +88,7 @@ export const login = async (req, res, next) => {
   res.cookie("refreshToken", refreshToken, {
     httpOnly: true,
     secure: true,
-    sameSite:  "none" ,
+    sameSite: "none",
     partitioned: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
@@ -110,33 +104,38 @@ export const login = async (req, res, next) => {
 };
 export const resendVerification = async (req, res, next) => {
   const { email } = req.body;
-
-  const user = await UserCollection.findOne({ email });
-
-  if (!user) {
-    return next(new ApiError(404, "User not found"));
-  }
-
-  if (user.isVerified) {
-    return res
-      .status(400)
-      .json({ message: "This account is already verified." });
-  }
-
+  const genericResponse = {
+    message: "If eligible, a verification email has been sent.",
+  };
   try {
+    const user = await UserCollection.findOne({ email });
+
+    if (!user || user.isVerified) {
+      return res.status(200).json(genericResponse);
+    }
+    const COOLDOWN = 2 * 60 * 1000; // 2 minutes
+
+    if (user.lastEmailSentAt && Date.now() - user.lastEmailSentAt < COOLDOWN) {
+      return res.status(200).json({
+        message: "If eligible, email will be sent shortly.",
+      });
+    }
+
+    user.lastEmailSentAt = new Date();
+    await user.save();
     await sendAuthEmail(user, "VERIFY");
-    res
-      .status(200)
-      .json({ message: "Verification link resent to your email." });
+
+    return res.status(200).json(genericResponse);
   } catch (error) {
-    return next(new ApiError(429, error.message));
+    return res.status(200).json(genericResponse);
   }
 };
 export const verifyEmail = async (req, res, next) => {
   const { token } = req.params;
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
   const user = await UserCollection.findOne({
-    verificationToken: token,
+    verificationToken: hashedToken,
     verificationTokenExpires: { $gt: Date.now() },
   });
 
@@ -155,27 +154,38 @@ export const verifyEmail = async (req, res, next) => {
 };
 // FORGOT PASSWORD
 export const forgotPassword = async (req, res, next) => {
+  const genericResponse = {
+    message: "If this email exists, a reset link has been sent.",
+  };
   const { email } = req.body;
-  console.log("from login email", email);
-  const user = await UserCollection.findOne({ email });
-
-  if (!user) return next(new ApiError(404, "Email not found"));
-  if (!user.isVerified)
-    return next(new ApiError(403, "Please verify your email first"));
-
   try {
+    const user = await UserCollection.findOne({ email });
+
+    if (!user || !user.isVerified) {
+      return res.status(200).json(genericResponse);
+    }
+    const COOLDOWN = 2 * 60 * 1000;
+
+    if (user.lastEmailSentAt && Date.now() - user.lastEmailSentAt < COOLDOWN) {
+      return res.status(200).json({
+        message: "If eligible, email will be sent shortly.",
+      });
+    }
+
+    user.lastEmailSentAt = new Date();
+    await user.save();
     await sendAuthEmail(user, "RESET");
-    res.status(200).json({ message: "Reset link sent to email." });
+
+    return res.status(200).json(genericResponse);
   } catch (error) {
-    next(error);
+    return res.status(200).json(genericResponse);
   }
 };
 
 export const resetPassword = async (req, res, next) => {
   try {
-    const { token } = req.params; // Extract token from URL
-    const { password } = req.body; // Extract new password from form body
-
+    const { token } = req.params;
+    const { password } = req.body;
     if (!password) {
       return next(new ApiError(400, "New password is required."));
     }
@@ -183,8 +193,9 @@ export const resetPassword = async (req, res, next) => {
     // 1. Find user by the reset token
     // 2. Check if the token hasn't expired ($gt: Date.now())
     // 3. Select '+password' to ensure the Argon2 pre-save hook triggers correctly
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const user = await UserCollection.findOne({
-      resetPasswordToken: token,
+      resetPasswordToken: hashedToken,
       resetPasswordExpires: { $gt: Date.now() },
     }).select("+password");
 
@@ -227,12 +238,25 @@ export const refresh = async (req, res, next) => {
   const storedToken = await RefreshTokenCollection.findOne({
     tokenId: payload.jti,
   });
-  if (
-    !storedToken ||
-    storedToken.revoked ||
-    storedToken.expiresAt < Date.now()
-  ) {
-    return next(new ApiError(401, "Refresh token revoked"));
+  if (!storedToken) {
+    return next(new ApiError(401, "Invalid refresh token"));
+  }
+  if (storedToken.revoked) {
+    console.error({
+      type: "TOKEN_REUSE_ATTACK",
+      user: storedToken.user,
+      ip: req.ip,
+      userAgent: req.headers["user-agent"],
+    });
+    await RefreshTokenCollection.updateMany(
+      { user: storedToken.user, revoked: false },
+      { $set: { revoked: true } },
+    );
+
+    return next(new ApiError(401, "Session compromised. Please login again."));
+  }
+  if (storedToken.expiresAt < Date.now()) {
+    return next(new ApiError(401, "Refresh token expired"));
   }
   storedToken.revoked = true;
   const newTokenId = generateTokenID();
@@ -250,7 +274,7 @@ export const refresh = async (req, res, next) => {
   res.cookie("accessToken", newAccessToken, {
     httpOnly: true,
     secure: true,
-    sameSite:  "none",
+    sameSite: "none",
     partitioned: true,
     maxAge: 60 * 60 * 1000,
   });

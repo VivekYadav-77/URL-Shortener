@@ -3,30 +3,23 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import helmet from "helmet";
+import redis from "./config/redish.js";
 import cookieParser from "cookie-parser";
 import rateLimit from "express-rate-limit";
 import hpp from "hpp";
 import errorHandler from "./middleware/error_middleware.js";
 import { redirect } from "./controllers/redirectUrl_controller.js";
 import auth_router from "./routes/auth_routes.js";
-import { trafficAnomalyGuard } from "./middleware/trafficAnomalyGuard.js";
 import url_router from "./routes/url_routes.js";
-import { redisRateLimit } from "./middleware/redisRateLimiting.js";
-import { abuseGuard } from "./middleware/abuse_middleware.js";
+import { rateLimiter } from "./middleware/redisRateLimiting.js";
 import admin_router from "./routes/admin_routes.js";
 import user_routers from "./routes/user_routes.js";
-//import "./crons/cronexpireUrlsJob.js"
-//import "./crons/cronRedisStats.js"
+import AppError from "./utils/ApiError.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
-if (process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1);
-} else {
-  app.set("trust proxy", false);
-}
+app.set("trust proxy", 1);
 app.use(
-  helmet(
     helmet({
       contentSecurityPolicy: {
         directives: {
@@ -37,8 +30,7 @@ app.use(
         },
       },
     }),
-  ),
-);
+  );
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
@@ -56,10 +48,7 @@ const limiter = rateLimit({
   legacyHeaders: false,
 
   handler: (req, res, next, options) => {
-    res.status(options.statusCode).json({
-      success: false,
-      error: "Too many requests. Please wait 15 minutes before trying again.",
-    });
+  next(new AppError("Too many requests. Try again later.", options.statusCode));
   },
 });
 app.use(limiter);
@@ -72,13 +61,27 @@ app.use("/api/auth", auth_router);
 app.use("/api/urls", url_router);
 app.use("/api/users", user_routers);
 app.use("/api/admin", admin_router);
+app.get("/health", async (req, res) => {
+  let redisStatus = "down";
+  try {
+    await redis.ping();
+    redisStatus = "up";
+    res.status(200).json({
+    status: "ok",
+    redis: redisStatus,
+    service: "running",
+    timestamp: new Date().toISOString(),
+  });
+  } catch (err) {
+    res.status(200).send("Redis unavailable");
+  }
+});
 app.get(
   "/:shortCode",
-  abuseGuard,
-  redisRateLimit("rl", 50, 60),
-  trafficAnomalyGuard,
+  rateLimiter,
   redirect,
 );
+
 app.use((req, res) => {
   res
     .status(404)

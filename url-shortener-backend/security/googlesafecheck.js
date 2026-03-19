@@ -1,4 +1,5 @@
 import axios from "axios";
+
 export const isUrlSafe = async (url) => {
   try {
     if (!url || typeof url !== "string") {
@@ -22,33 +23,15 @@ export const isUrlSafe = async (url) => {
       };
     }
 
-    const endpoint =
-      "https://safebrowsing.googleapis.com/v4/threatMatches:find?key=" +
-      API_KEY;
+    // --- v5 UPDATE: Endpoint is now a GET request to urls:search ---
+    const endpoint = `https://safebrowsing.googleapis.com/v5/urls:search?key=${API_KEY}&urls=${encodeURIComponent(url)}`;
 
-    const body = {
-      client: {
-        clientId: "url-shortener",
-        clientVersion: "1.0",
-      },
-      threatInfo: {
-        threatTypes: [
-          "MALWARE",
-          "SOCIAL_ENGINEERING",
-          "UNWANTED_SOFTWARE",
-          "POTENTIALLY_HARMFUL_APPLICATION",
-        ],
-        platformTypes: ["ANY_PLATFORM"],
-        threatEntryTypes: ["URL"],
-        threatEntries: [{ url }],
-      },
-    };
-
-    const response = await axios.post(endpoint, body, {
+    const response = await axios.get(endpoint, {
       timeout: 4000,
     });
 
-    if (!response.data || !response.data.matches) {
+    // --- v5 UPDATE: "matches" is now "threats" ---
+    if (!response.data || !response.data.threats || response.data.threats.length === 0) {
       return {
         safe: true,
         reason: null,
@@ -57,12 +40,17 @@ export const isUrlSafe = async (url) => {
       };
     }
 
-    const match = response.data.matches[0];
+    const threatMatch = response.data.threats[0];
+
+    // --- v5 UPDATE: Threat types are now returned as an array ---
+    const primaryThreat = (threatMatch.threatTypes && threatMatch.threatTypes.length > 0) 
+      ? threatMatch.threatTypes[0] 
+      : "UNKNOWN_THREAT";
 
     return {
       safe: false,
-      reason: match.threatType || "UNKNOWN_THREAT",
-      details: match,
+      reason: primaryThreat,
+      details: threatMatch,
       source: "google",
     };
   } catch (error) {

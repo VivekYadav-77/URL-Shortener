@@ -18,7 +18,6 @@ export const getMe = async (req, res, next) => {
 export const updateMe = async (req, res, next) => {
   try {
     const { name } = req.body;
-    console.log(req.body);
 
     if (!name || name.trim().length < 8) {
       return next(new ApiError(400, "Username is required"));

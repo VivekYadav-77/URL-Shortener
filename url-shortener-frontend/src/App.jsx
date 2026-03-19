@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useGetMeQuery } from "./Features/auth/authApi";
 import { useAppDispatch } from "./App/hook";
+import { useAppSelector } from "./App/hook";
 import { setUser, clearUser, markAuthChecked } from "./Features/auth/authSlice";
 import CreateUrl from "./Pages/CreateUrl";
 import Login from "./Pages/Login";
@@ -26,20 +27,24 @@ import { ForgotPassword } from "./Pages/ForgotPassword";
 import AboutUs from "./Pages/Aboutus";
 import AdminProfile from "./Pages/AdminProfilePage";
 import ContactMePage from "./Pages/ContactUs";
+import UserSessionsPage from "./Pages/AdminUserSessionsPage";
 function App() {
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const { data, isSuccess, isError, isloading } = useGetMeQuery();
+  const { data, isSuccess, isError, isloading } = useGetMeQuery(undefined, {
+  skip: isAuthenticated, 
+});
 
   useEffect(() => {
-    if (isSuccess && data) {
-      dispatch(setUser(data));
-    }
-    if (isError) {
-      dispatch(clearUser());
-    }
+  if (isSuccess && data) {
+    dispatch(setUser(data));
     dispatch(markAuthChecked());
-  }, [isSuccess, isError, data, dispatch]);
+  } else if (isError) {
+    dispatch(clearUser());
+    dispatch(markAuthChecked());
+  }
+}, [isSuccess, isError, data, dispatch]);
   if (isloading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -75,6 +80,8 @@ function App() {
             element={<AdminBlockedUsersPage />}
           />
           <Route path="/admin/profile" element={<AdminProfile />} />
+          <Route path="/admin/sessions" element={<UserSessionsPage />} />
+
         </Route>
         {/* Protected routes */}
         <Route element={<ProtectedRoute />}>

@@ -1,17 +1,22 @@
 const errorHandler = (err, req, res, next) => {
   const statusCode = err.statusCode || 500;
-  const message = err.message || "Internal Server Error";
 
-  // LOG FOR DEVELOPER
-  console.error(`[ERROR] ${statusCode} - ${message}`);
+  console.error("ERROR:", {
+    message: err.message,
+    stack: err.stack,
+    status: statusCode,
+  });
 
-  // RESPONSE FOR USER
-  res.status(statusCode).json({
+  if (err.isOperational) {
+    return res.status(statusCode).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
+  return res.status(500).json({
     success: false,
-    message: message,
-    // SECURITY: Hide the file paths/logic
-    stack: process.env.NODE_ENV === "development" ? err.stack : null,
+    message: "Something went wrong",
   });
 };
-
 export default errorHandler;

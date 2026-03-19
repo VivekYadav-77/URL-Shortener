@@ -10,6 +10,7 @@ const redis = new Redis({
   url: process.env.REDIS_URL,
   token: process.env.REDIS_TOKEN,
   enableAutoPipelining: true,
+  retry: { retries: 1 },
 });
 
 export default redis;

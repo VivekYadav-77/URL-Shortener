@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../App/themeStore";
 import { User, Code, Cpu, Globe, Zap, ShieldCheck, X } from "lucide-react";
-import vk from '../../public/Vivek.png'
+import vk from '../Photo/Vivek.png'
 const AboutUs = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();

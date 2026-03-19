@@ -16,6 +16,29 @@ export const createShortUrl = async (req, res, next) => {
     if (!originalUrl || !validateUrl(originalUrl)) {
       return next(new ApiError(400, "Invalid URL"));
     }
+    const ip = getClientIp(req);
+
+const recentRequests = await SecurityLog.countDocuments({
+  "metadata.ip": ip,
+    type: { $in: ["scan_success", "unsafe_scan_blocked"] },
+  createdAt: { $gt: new Date(Date.now() - 5 * 60 * 1000) },
+});
+
+if (recentRequests > 20) {
+  await SecurityLog.create({
+    type: "suspicious_activity",
+    originalUrl,
+    user: req.userId,
+    metadata: getSecurityMetadata(req, {
+      reason: "Too many requests in short time",
+      requestCount: recentRequests,
+    }),
+  });
+
+  return next(
+    new ApiError(429, "Too many requests detected. Try later.")
+  );
+}
 
     // 2. Expiry Calculation
     const now = Date.now();
@@ -72,6 +95,7 @@ export const createShortUrl = async (req, res, next) => {
 
     // 5. Risk Analysis & Logging
     const riskScore = analyzeUrlRisk(originalUrl);
+    
     if (riskScore >= 60) {
       await SecurityLog.create({
         type: riskScore >= 100 ? "critical_blocked" : "high_risk_blocked",
@@ -114,6 +138,8 @@ export const createShortUrl = async (req, res, next) => {
           metadata: getSecurityMetadata(req, {
             safe: false,
             scannerUsed: scanResult.source,
+             eventContext: "url_creation",
+             riskScore,
           }),
         });
         return next(new ApiError(400, "Unsafe URL detected."));
@@ -128,7 +154,7 @@ export const createShortUrl = async (req, res, next) => {
         metadata: getSecurityMetadata(req, {
           safe: true,
           scannerUsed: scanResult.source,
-          ip: req.ip,
+          ip: getClientIp(req),
         }),
       });
     }

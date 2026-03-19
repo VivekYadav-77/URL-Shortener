@@ -43,11 +43,13 @@ const Login = () => {
     { isLoading: isResending, isSuccess: resendSuccess },
   ] = useResendVerificationMutation();
 
-  useEffect(() => {
-    if (authChecked && isAuthenticated) {
-      navigate(user.role === "admin" ? "/admin" : "/", { replace: true });
-    }
-  }, [authChecked, isAuthenticated, navigate, user]);
+ useEffect(() => {
+  if (authChecked && isAuthenticated && user) {
+    navigate(user.role === "admin" ? "/admin" : "/", {
+      replace: true,
+    });
+  }
+}, [authChecked, isAuthenticated, navigate, user]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -63,15 +65,28 @@ const Login = () => {
       return setLocalError("Secret Key must be at least 8 characters");
     }
 
-    login({ email, password })
-      .unwrap()
-      .then((res) => {
-        dispatch(setUser(res.user));
-        navigate(res.user.role === "admin" ? "/admin" : "/", { replace: true });
-      })
-      .catch((err) => {
-        console.log("Login Error Structure:", err);
-      });
+   login({ email, password })
+  .unwrap()
+  .then((res) => {
+    if (!res?.user) {
+      throw new Error("Malformed response from server");
+    }
+
+    dispatch(setUser(res.user));
+
+    navigate(
+      res.user.role === "admin" ? "/admin" : "/",
+      { replace: true }
+    );
+  })
+  .catch((err) => {
+
+    if (err?.data?.message) {
+      setLocalError(err.data.message);
+    } else {
+      setLocalError("Login failed. Check Credentials.");
+    }
+  });
   };
 
   if (!authChecked) return null;

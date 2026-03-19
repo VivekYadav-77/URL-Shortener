@@ -1,22 +1,17 @@
-import redis from "../config/redish.js";
-export const redisRateLimit = (prefix, limit, windowSec) => {
-  return async (req, res, next) => {
-    try {
-      const key = `${prefix}:${req.ip}`;
+import { safeIncr, safeExpire } from "../utils/safeRedish.js";
 
-      const count = await redis.incr(key);
+export const rateLimiter = async (req, res, next) => {
+  const key = `rl:${req.ip}`;
 
-      if (count === 1) {
-        await redis.expire(key, windowSec);
-      }
+  const count = await safeIncr(key);
 
-      if (count > limit) {
-        return res.status(429).json({ message: "Too many requests" });
-      }
+  if (count === 1) {
+    await safeExpire(key, 60);
+  }
 
-      next();
-    } catch (err) {
-      next();
-    }
-  };
+  if (count > 100) {
+    return res.status(429).json({ message: "Too many requests" });
+  }
+
+  next();
 };

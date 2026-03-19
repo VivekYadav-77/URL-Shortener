@@ -1,57 +1,180 @@
- <img src="./url-shortener-frontend/public/logo.svg"/> 
+<img src="./url-shortener-frontend/public/logo.svg"/>
 
-# Shortly (Secure URL Shortener)
+# Shortly — Secure & Fault-Tolerant URL Shortener
 
-A **secure, scalable URL shortener (Shortly)** built with **Node.js, Express, MongoDB, Redis, and React**, designed with **real-world security practices** such as abuse detection, URL risk analysis, caching, and admin moderation.
+A **production-inspired URL shortener** built with **Node.js, Express, MongoDB, Redis, and React**, focused on **security, performance, and fault-tolerant backend design**.
 
-This project is not just about shortening URLs — it focuses on **security, performance, and correctness**.
-
----
-
-## 🚀 Features
-
-### 👤 User Features
-- Shorten long URLs
-- Optional custom alias
-- Expiry control (default: 5 days, max: 7 days)
-- URL history with metadata
-- Click tracking
-- Disable and Delete created url
-- Automatic expiry handling
-
-### 🛡️ Security Features
-- URL risk analysis (phishing, suspicious patterns)
-- Google Safe Browsing integration
-- VirusTotal scanning
-- Cached scan results (avoid re-scanning safe URLs)
-- Abuse detection via IP-based rate limiting
-- Redis-based request throttling
-- Admin-enforced blocking (disabled/deleted URLs)
-
-### 🧑‍💼 Admin Features
-- View security logs
-- Disable or delete malicious URLs 
-- View high-risk URL attempts
-- Manual moderation control
+Unlike typical URL shorteners, this system is designed to **continue functioning even if Redis (cache layer) is unavailable**, ensuring reliability under real-world failure conditions.
 
 ---
 
-## 🧱 Tech Stack
+# 🧠 Core Engineering Principles
 
-### Backend
-- **Node.js**
-- **Express.js**
-- **MongoDB (Mongoose)**
-- **Redis (Upstash)**
-- **Zod** (request validation)
-- **Helmet, HPP, Rate Limiting**
-- **Cron Jobs**
+* **Fault Tolerance First** → System works even if Redis fails
+* **MongoDB as Source of Truth** → No dependency on cache correctness
+* **Non-blocking Request Flow** → Fast redirects, async updates
+* **Security + Performance Balance** → Avoid over-engineering
 
-### Frontend
-- **React**
-- **Redux Toolkit**
-- **Tailwind CSS**
-- **Vite**
+---
+
+# 🏗️ System Architecture
+
+```text
+Client
+  ↓
+Express API (Render)
+  ↓
+Redis (optional cache)
+  ↓
+MongoDB (primary database)
+```
+
+---
+
+# 🚀 Features
+
+## 👤 User Features
+
+* Shorten long URLs
+* Optional custom alias (unique enforced)
+* Expiry control (default: 5 days, max: 7 days)
+* URL history with metadata
+* Click tracking
+* Disable & delete URLs
+* Automatic expiry handling
+
+---
+
+## 🛡️ Security Features
+
+* URL risk analysis (phishing & suspicious pattern detection)
+* Google Safe Browsing integration
+* VirusTotal scanning
+* Cached scan results (avoid re-scanning safe URLs)
+* IP-based rate limiting (Redis-backed, fault-tolerant)
+* Admin-enforced blocking (disabled/deleted URLs)
+
+---
+
+## 🧑‍💼 Admin Features
+
+* View security logs
+* Detect high-risk URL attempts
+* Disable or delete malicious URLs
+* Manual moderation controls
+
+---
+
+# 🔁 Redirect Flow (Optimized & Reliable)
+
+```text
+1. User hits /:shortCode
+2. Try Redis cache
+   → If hit → validate → redirect
+3. Cache miss → query MongoDB
+4. Validate (active / not expired / not deleted)
+5. Redirect immediately
+6. Cache result (non-blocking)
+7. Increment clicks asynchronously
+```
+
+---
+
+# 💥 Failure Handling (Real-World Thinking)
+
+### Redis Failure
+
+* System falls back to MongoDB
+* No broken redirects
+* Only performance degradation
+
+### High Traffic
+
+* Rate limiter prevents abuse
+* Cache reduces database load
+
+### Expired / Invalid URLs
+
+* Returns static error page (410 Gone)
+
+---
+
+# 🔐 URL Security Pipeline
+
+```text
+User Input URL
+   ↓
+Validation (Zod)
+   ↓
+Admin Flag Check
+   ↓
+Risk Score Analysis
+   ↓
+Recent Safe Scan? → Skip
+   ↓
+Google Safe Browsing
+   ↓
+VirusTotal Scan
+   ↓
+Security Logs Stored
+   ↓
+URL Created
+```
+
+---
+
+# 🧠 Smart Scan Optimization
+
+* Safe URLs are **not re-scanned within 2 weeks**
+* Security logs stored in `SecurityLog` collection
+* High-risk URLs blocked early
+* Reduces API cost and improves performance
+
+---
+
+# ⚡ Redis Usage (Optimized)
+
+* URL caching → `url:{shortCode}`
+* Rate limiting → `rl:{ip}`
+* Minimal Redis operations per request
+* Redis treated as **non-critical dependency**
+
+---
+
+# 🧱 Tech Stack
+
+## Backend
+
+* Node.js + Express
+* MongoDB (Mongoose)
+* Redis (Upstash)
+* Zod (validation)
+* Helmet, HPP
+
+## Frontend
+
+* React + Vite
+* Redux Toolkit
+* Tailwind CSS
+
+---
+
+# 📊 Performance Considerations
+
+* Indexed lookup on `shortCode`
+* Lean queries (`.lean()`)
+* Reduced Redis calls per request
+* Async DB updates for clicks
+* Cache TTL optimization (24h)
+
+---
+
+# 🕒 Background Jobs
+
+| Job                   | Purpose                  |
+| --------------------- | ------------------------ |
+| Expiry Job            | Marks expired URLs       |
+| (Optional) Redis Sync | Can sync stats if needed |
 
 ---
 
@@ -96,132 +219,66 @@ URL-SHORTENER/
 
 ---
 
-## 🔁 URL Redirection Flow
 
-1. User visits `/shortCode`
-2. Server checks Redis cache
-3. If cached → validate status
-4. If not cached → fetch from DB
-5. If **expired / disabled / deleted** → serve static HTML error page
-6. If valid → redirect to original URL
-7. Click & abuse stats updated in Redis
-8. Cron job syncs Redis stats to MongoDB
+# 🧪 Validation Rules
+
+* Custom alias must be unique
+* Expiry limited to 7 days
+* Safe handling of empty fields
+* Strict schema validation using Zod
 
 ---
 
-## 🔐 URL Security Pipeline
-
-```text
-User Input URL
-   ↓
-Basic URL Validation
-   ↓
-Admin-flagged check
-   ↓
-Risk Score Analysis
-   ↓
-Recent Safe Scan? → Skip Scan
-   ↓
-Google Safe Browsing
-   ↓
-VirusTotal Scan
-   ↓
-Security Logs Stored
-   ↓
-URL Created
-```
-
----
-
-## 🧠 Smart Scan Optimization
-
-- Safe URLs are **not re-scanned** within 2 weeks
-- Security decisions stored in `SecurityLog` collection
-- High-risk URLs are **blocked before scanning**
-- Prevents API overuse & improves performance
-
----
-
-## ⚡ Redis Usage
-
-- URL caching (`url:{shortCode}`)
-- Click & abuse stats (`stats:{shortCode}`)
-- IP-based abuse tracking
-- Rate limiting
-- Temporary storage for performance
-
----
-
-## 🕒 Cron Jobs
-
-| Job         | Purpose                      |
-| ----------- | ---------------------------- |
-| Expiry Job  | Marks expired URLs           |
-| Redis Flush | Syncs Redis stats to MongoDB |
-
----
-
-## 🧪 Validation Rules
-
-- Custom alias must be unique
-- Expiry date must be within 7 days
-- Empty alias/date handled safely
-- Zod schema ensures clean input
-
----
-
-## 📸 Screenshots
+# 📸 Screenshots
 
 ### 🧑‍💼 Admin Dashboard
 
-
 <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./Adminfaceimages/Screenshot%202026-01-31%20105503.png">
-    <img alt="Admin Dashboard" src="./Adminfaceimages/Screenshot%202026-01-31%20111529.png">
-  </picture>
-
-
-
-### 🧑‍💼 User Dashboard
-
-<picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./Adminfaceimages/Screenshot%202026-01-31%20111837.png">
-    <img alt="Admin Dashboard" src="./Adminfaceimages/Screenshot%202026-01-31%20111813.png">
-  </picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./Adminfaceimages/Screenshot%202026-01-31%20105503.png">
+  <img alt="Admin Dashboard" src="./Adminfaceimages/Screenshot%202026-01-31%20111529.png">
+</picture>
 
 ---
 
-## ⚙️ Environment Variables
+### 👤 User Dashboard
 
-Create a `.env` file for backend :
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./Adminfaceimages/Screenshot%202026-01-31%20111837.png">
+  <img alt="User Dashboard" src="./Adminfaceimages/Screenshot%202026-01-31%20111813.png">
+</picture>
+
+---
+
+# ⚙️ Environment Variables
+
+## Backend
 
 ```env
 PORT=5000
 MONGO_URL=your_mongodb_uri
 REDIS_URL=your_upstash_url
 REDIS_TOKEN=your_upstash_token
-CLIENT_URL=http://localhost:5173
-JWT_ACCESS_SECRET=your access secret
-JWT_REFRESH_SECRET=your refresh secret
+JWT_ACCESS_SECRET=your_secret
+JWT_REFRESH_SECRET=your_secret
 VIRUS_TOTAL_API_KEY=your_key
 GOOGLE_SAFE_BROWSING_KEY=your_key
-EMAIL_USER=your comapny email 
-GOOGLE_SCRIPT_URL=your own script url with comany domain email
+```
+
+## Frontend
+
+```env
+VITE_B_LOCATION=http://localhost:5000
 ```
 
 ---
-Create a `.env` file for frontend :
 
-```env
-VITE_EMAIL = your company email 
-VITE_B_LOCATION= your backend address or http://localhost:5000
-```
-## ▶️ Run Locally
+# ▶️ Run Locally
 
 ```bash
 # Backend
 npm install
 node index.js
+
 # Frontend
 npm install
 npm run dev
@@ -229,28 +286,22 @@ npm run dev
 
 ---
 
-## 🎯 Why This Project Matters
+# 🎯 Why This Project Stands Out
 
 This project demonstrates:
 
-- Backend system design
-- Security-first thinking
-- Real-world Redis usage
-- Abuse prevention strategies
-- Clean architecture & separation of concerns
-
-It is built like a **production system**, not a tutorial demo.
+* Fault-tolerant backend design
+* Real-world caching strategy (Redis as optional)
+* Security-first URL handling
+* Clean architecture & separation of concerns
+* Practical trade-offs instead of overengineering
 
 ---
 
+# 👤 Author
 
-
-## 👤 Author
-
-**Vivek**  
-Backend & Full-Stack Developer  
-Focused on **security, performance, and real-world systems**
+**Vivek**
+Focused on building **reliable, scalable, real-world systems**
 
 ---
-
 

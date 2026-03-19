@@ -13,6 +13,7 @@ const securityLogSchema = new mongoose.Schema(
         "admin_blocked",
         "admin_disabled",
         "creation_attempt_blocked",
+        "suspicious_activity",
       ],
       required: true,
     },
@@ -28,14 +29,18 @@ const securityLogSchema = new mongoose.Schema(
     },
 
     metadata: {
-      safe: Boolean,
-      riskScore: Number,
-      scannerUsed: String,
-      reason: String,
-      ip: String,
+       safe: Boolean,
+  riskScore: Number,
+  scannerUsed: String,
+  reason: String,
+  ip: String,
+  userAgent: String,
+  deviceType: String,
+  isPrivateIP: Boolean,
     },
   },
   { timestamps: true },
 );
+securityLogSchema.index({ "metadata.ip": 1, createdAt: -1 });
 
 export default mongoose.model("SecurityLog", securityLogSchema);
