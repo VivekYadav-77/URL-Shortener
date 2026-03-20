@@ -1,17 +1,13 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAppSelector } from "../../App/hook";
-
+import ServerWakingLoader from "./ServerWakingLoader";
 const ProtectedRoute = () => {
   const { isAuthenticated, authChecked, user } = useAppSelector(
     (state) => state.auth,
   );
 
   if (!authChecked) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
+      return <ServerWakingLoader/>
   }
   if (user?.role === "admin") {
     return <Navigate to="/admin" replace />;

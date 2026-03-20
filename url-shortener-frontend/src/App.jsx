@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate} from "react-router-dom";
 import { useGetMeQuery } from "./Features/auth/authApi";
 import { useAppDispatch } from "./App/hook";
 import { useAppSelector } from "./App/hook";
@@ -30,32 +30,22 @@ import ContactMePage from "./Pages/ContactUs";
 import UserSessionsPage from "./Pages/AdminUserSessionsPage";
 function App() {
   const dispatch = useAppDispatch();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
 
-  const { data, isSuccess, isError, isloading } = useGetMeQuery(undefined, {
-  skip: isAuthenticated, 
-});
-
+  const { data, isSuccess, isError, isloading } = useGetMeQuery();
   useEffect(() => {
   if (isSuccess && data) {
     dispatch(setUser(data));
     dispatch(markAuthChecked());
   } else if (isError) {
-    dispatch(clearUser());
     dispatch(markAuthChecked());
   }
 }, [isSuccess, isError, data, dispatch]);
-  if (isloading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex-col gap-4 w-full flex items-center justify-center">
-          <div className="w-20 h-20 border-4 border-transparent text-blue-400 text-4xl animate-spin flex items-center justify-center border-t-blue-400 rounded-full">
-            <div className="w-16 h-16 border-4 border-transparent text-black text-2xl animate-spin flex items-center justify-center border-t-black rounded-full"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+useEffect(() => {
+  fetch(`${import.meta.env.VITE_B_LOCATION}/health`, {
+    credentials: "include",
+  }).catch(() => {});
+}, []);
+ 
   return (
     <BrowserRouter>
       <Routes>

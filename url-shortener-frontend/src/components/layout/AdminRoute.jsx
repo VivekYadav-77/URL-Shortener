@@ -1,7 +1,13 @@
 import { Navigate, Outlet } from "react-router-dom";
 import { useAppSelector } from "../../App/hook";
 const AdminRoute = () => {
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, authChecked, user } = useAppSelector(
+    (state) => state.auth
+  );
+
+  if (!authChecked) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -13,5 +19,4 @@ const AdminRoute = () => {
 
   return <Outlet />;
 };
-
 export default AdminRoute;

@@ -81,7 +81,6 @@ export const login = async (req, res, next) => {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    partitioned: true,
     maxAge: 60 * 60 * 1000,
   });
 
@@ -89,7 +88,6 @@ export const login = async (req, res, next) => {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    partitioned: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
@@ -275,7 +273,6 @@ export const refresh = async (req, res, next) => {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    partitioned: true,
     maxAge: 60 * 60 * 1000,
   });
 
@@ -283,26 +280,37 @@ export const refresh = async (req, res, next) => {
     httpOnly: true,
     secure: true,
     sameSite: "none",
-    partitioned: true,
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
   res.json({ message: "Token refreshed" });
 };
 //logout
+const cookieOptions = {
+  httpOnly: true,
+  secure: true,
+  sameSite: "none",
+  path: "/",
+};
 export const logout = async (req, res) => {
-  const token = req.cookies.refreshToken;
-  if (token) {
-    const payload = jwt.decode(token);
-    if (payload?.jti) {
-      await RefreshTokenCollection.updateOne(
-        { tokenId: payload.jti },
-        { revoked: true },
-      );
-    }
-  }
-  res.clearCookie("accessToken");
-  res.clearCookie("refreshToken");
+ try {
+    const token = req.cookies.refreshToken;
 
-  res.status(200).json({ message: "Logged out successfully" });
+    if (token) {
+      const payload = jwt.decode(token);
+      if (payload?.jti) {
+        await RefreshTokenCollection.updateOne(
+          { tokenId: payload.jti },
+          { revoked: true }
+        );
+      }
+    }
+
+    res.clearCookie("accessToken", cookieOptions);
+    res.clearCookie("refreshToken", cookieOptions);
+
+    return res.status(200).json({ message: "Logged out successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Logout failed" });
+  }
 };
