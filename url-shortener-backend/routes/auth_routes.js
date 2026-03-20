@@ -31,7 +31,7 @@ auth_router.post("/reset-password/:token", resetPassword);
 auth_router.post(
   "/resend-verification",
   authLimiter,
-  emailRateLimiter,
+  emailRateLimiter(),
   blockGuard,
   resendVerification,
 );

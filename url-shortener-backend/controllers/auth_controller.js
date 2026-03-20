@@ -82,6 +82,7 @@ export const login = async (req, res, next) => {
     secure: true,
     sameSite: "none",
     maxAge: 60 * 60 * 1000,
+    path:"/"
   });
 
   res.cookie("refreshToken", refreshToken, {
@@ -89,6 +90,7 @@ export const login = async (req, res, next) => {
     secure: true,
     sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+    path:"/api/auth/refresh"
   });
 
   res.status(200).json({
@@ -274,6 +276,7 @@ export const refresh = async (req, res, next) => {
     secure: true,
     sameSite: "none",
     maxAge: 60 * 60 * 1000,
+    path:"/"
   });
 
   res.cookie("refreshToken", newRefreshToken, {
@@ -281,6 +284,7 @@ export const refresh = async (req, res, next) => {
     secure: true,
     sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+    path:"/api/auth/refresh"
   });
 
   res.json({ message: "Token refreshed" });
@@ -290,7 +294,7 @@ const cookieOptions = {
   httpOnly: true,
   secure: true,
   sameSite: "none",
-  path: "/",
+ 
 };
 export const logout = async (req, res) => {
  try {
@@ -306,9 +310,8 @@ export const logout = async (req, res) => {
       }
     }
 
-    res.clearCookie("accessToken", cookieOptions);
-    res.clearCookie("refreshToken", cookieOptions);
-
+res.clearCookie("accessToken",{...cookieOptions,path:"/"});
+res.clearCookie("refreshToken",{...cookieOptions,path:"/api/auth/refresh"});
     return res.status(200).json({ message: "Logged out successfully" });
   } catch (err) {
     return res.status(500).json({ message: "Logout failed" });

@@ -1,4 +1,4 @@
-<img src="./url-shortener-frontend/public/logo.svg"/>
+<img src="./url-shortener-frontend/public/logo.svg" width="60" />
 
 # Shortly — Secure & Fault-Tolerant URL Shortener
 
