@@ -7,6 +7,7 @@ import { checkUrlSecurity } from "../utils/secureScanner.js";
 import { analyzeUrlRisk } from "../utils/urlRiskAnalyzer.js";
 import SecurityLog from "../models/securityLog_model.js";
 import { getSecurityMetadata } from "../utils/securityHelper.js";
+import { getClientIp } from "../utils/getClientIp.js";
 import redis from "../config/redish.js";
 export const createShortUrl = async (req, res, next) => {
   try {

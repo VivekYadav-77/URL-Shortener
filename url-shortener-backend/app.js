@@ -51,7 +51,10 @@ const limiter = rateLimit({
   next(new AppError("Too many requests. Try again later.", options.statusCode));
   },
 });
-app.use(limiter);
+app.use((req, res, next) => {
+  if (req.path === "/keep-alive") return next();
+  limiter(req, res, next);
+});
 app.use(express.json());
 app.use(hpp());
 app.use(cookieParser());
@@ -74,6 +77,24 @@ app.get("/health", async (req, res) => {
   });
   } catch (err) {
     res.status(200).send("Redis unavailable");
+  }
+});
+app.get("/keep-alive", async (req, res) => {
+  const token = req.headers["x-cron-secret"];
+
+  if (token !== process.env.CRON_SECRET) {
+    return res.status(403).send("Forbidden");
+  }
+
+  try {
+    await redis.incr("keep_alive"); 
+
+    console.log("Redis kept alive at:", new Date().toISOString());
+
+    res.status(200).send("ok");
+  } catch (err) {
+    console.error("Keep-alive failed:", err);
+    res.status(500).send("fail");
   }
 });
 app.get(

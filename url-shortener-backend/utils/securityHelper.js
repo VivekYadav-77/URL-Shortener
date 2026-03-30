@@ -21,7 +21,6 @@ export const getSecurityMetadata = (req, extra = {}) => {
     userAgent,
     isPrivateIP: isPrivate,
 
-    // 🔥 ADD THIS
     deviceType: /mobile/i.test(userAgent) ? "mobile" : "desktop",
 
     ...extra,
